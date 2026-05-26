@@ -16,6 +16,9 @@ The system allows multiple clients to concurrently read shared resources while e
 
 **System Architecture**
 
+<img width="482" height="244" alt="image" src="https://github.com/user-attachments/assets/ff6a9783-c197-406c-a0b2-e945066fe068" />
+
+
 Client Nodes:
   - Connect to the distributed server
   - Send resource access requests
