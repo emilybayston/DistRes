@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>ConRes CW1</title>
+    <style>
+
+    :root{
+      --background: #0e0514;
+      --background2: #160a1e;
+      --background3: #1a0d24;
+      --font: #f0d6ff;
+      --font2: #9b6fc4;
+      --font3: #4a2a6a;
+      --panel: #1e0d30;
+      --panel2: #241038;
+      --border: #3d1a5c;
+      --border2: #4a2070;
+      --purple: #c084fc;
+      --purple2: #a855f7;
+      --purple3: #e0aaff;
+      --purple4: rgba(192,132,252,0.12);
+      --pink: #f472b6;
+      --pink2: #ec4899;
+      --pink3: #fbb6d4;
+      --pink4: rgba(244,114,182,0.12);
+      --orange: #fb923c;
+      --orange2: #f97316;
+      --orange3: rgba(251,146,60,0.12);
+      --br_pink: #ff5c8a;
+      --br_pink2: rgba(255,92,138,0.12);
+      
+    }
+
+    *,*::before,*::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+
+    html,body {
+      height: 100%;
+    }
+
+
+    body {
+      font-family: Arial,Helvetica,sans-serif;
+      font-size: 14px;
+      background: var(--background);
+      color: var(--font);
+      overflow: hidden;
+      display: flex;
+    }
+                                                                                  
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(ellipse 60% 70% at 5% 20%,rgba(168,85,247,0.12),transparent 60%),
+        radial-gradient(ellipse 50% 50% at 95% 80%,rgba(244,114,182,0.1),transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%,rgba(249,115,22,0.05),transparent 70%);
+    }
+
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      height: 100vh;
+      background: linear-gradient(180deg,rgba(30,13,48,0.98),rgba(20,8,34,0.99));
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(180deg,transparent,var(--purple2),var(--pink2),transparent);
+    }
+
+    .sidebar_area {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar_name {
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(135deg,var(--purple3),var(--pink3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sidebar_semaphore {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar_semaphore_title {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--font3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar_slots {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .sidebar_slot {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .sidebar_slot.occ {
+      background: var(--purple2);
+      border-color: var(--purple);
+      box-shadow: 0 0 6px rgba(168,85,247,0.5);
+    }
+
+    .sidebar_semaphore_text {
+      font-size: 10px;
+      color: var(--font2);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sidebar_semaphore_count {
+      font-weight: 500;
+      color: var(--purple3);
+    }
+
+    .sidebar_navigation {
+      flex: 1;
+      padding: 12px 10px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .sidebar_navigation::-webkit-scrollbar {
+      display: none;
+    }
+
+    .navigation_section {
+      margin-bottom: 20px;
+    }
+
+    .navigation_section_title {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--font3);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 0 10px;
+      margin-bottom: 6px;
+    }
+
+    .navigation_item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--font2);
+      font-size: 13px;
+      font-weight: 500;
+      position: relative;
+      user-select: none;
+    }
+
+    .navigation_item:hover{
+      background: rgba(192,132,252,0.08);
+      color: var(--font);
+    }
+
+    .navigation_item.active {
+      background: rgba(192,132,252,0.14);
+      color: var(--purple3);
+    }
+
+    .sidebar_bottom{
+      padding: 14px 10px; 
+      border-top: 1px solid var(--border);
+    }
+
+    .button_login_sidebar {
+      display: flex;
+      align-items: center;
+      justify-content: 
+      center;gap: 8px;
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg,rgba(168,85,247,0.25),rgba(236,72,153,0.2));
+      color: var(--purple3);
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(168,85,247,0.35);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .button_login_sidebar:hover {
+      background: linear-gradient(135deg,rgba(168,85,247,0.35),rgba(236,72,153,0.3));
+      border-color: var(--purple);
+      box-shadow: 0 0 20px rgba(168,85,247,0.3);
+    }
+
+    .main {
+      flex: 1;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(14,5,20,0.6);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+  }
+
+  .topbar-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--font);
+  }
+
+  .page {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .page::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .page::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .page::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+
+  .panel {
+    background: linear-gradient(160deg,rgba(22,8,36,0.92),rgba(14,5,22,0.96));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .panel_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .panel_title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .two_panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .span {
+    grid-column: 1/3;
+  }
+
+  .info_row {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .info {
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg,rgba(22,8,36,0.92),rgba(14,5,22,0.96));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .info::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .info.activeUsers::after {
+    background: linear-gradient(90deg,var(--purple),transparent);
+  }
+
+  .info.readers::after{
+    background: linear-gradient(90deg,var(--pink),transparent);
+  }
+
+  .info.writers::after {
+    background: linear-gradient(90deg,var(--orange),transparent);
+  }
+
+  .info.queued::after {
+    background: linear-gradient(90deg,var(--pink2),transparent);
+  }
+   
+  .info_label{
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--font3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .info_value {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .info.activeUsers .info_value {
+    color: var(--purple3);
+  }
+
+  .info.readers .info_value {
+    color: var(--pink3);
+  }
+
+  .info.writers .info_value{
+    color: var(--orange);
+  }
+  .info.queued .info_value {
+    color: var(--pink);
+  }
+
+  .session_list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 36px;
+    padding: 12px;
+  }
+
+  .upanel {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: si 0.25s ease
+  }
+  @keyframes si {
+    from{opacity: 0;transform: translateX(-6px)}to{opacity: 1;transform: translateX(0)};
+  }
+
+  .upanel:hover {
+    background: rgba(192,132,252,0.06);
+  }
+
+  .upanel.selection {
+    background: var(--purple4);
+    border-color: var(--purple2);
+  }
+
+  .upanel.reading {
+    border-left-color: var(--purple);
+  }
+
+  .upanel.writing {
+    border-left-color: var(--orange);
+  }
+
+  .upanel.idle {
+    border-left-color: var(--pink);
+  }
+
+  .upanel.waiting {
+    border-left-color: var(--pink2);
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .avatar.activeUsers {
+    background: var(--purple4);
+    color: var(--purple3);
+  }
+
+  .avatar.readers {
+    background: var(--pink4);
+    color: var(--pink3);
+  }
+
+  .avatar.writers {
+    background: var(--orange3);
+    color: var(--orange);
+  }
+
+  .avatar.queued {
+    background: rgba(236,72,153,0.12);
+    color: var(--pink2);
+  }
+
+  .user_info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user_name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--font);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user_mid {
+    font-size: 9px;
+    color: var(--font3);
+    margin-top: 1px;
+  }
+
+  .spill {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .spill.reading {
+    background: var(--purple4);
+    color: var(--purple3);
+  }
+
+  .spill.writing {background: var(--orange3);
+    color: var(--orange);
+    animation: fl 1s infinite;
+  }
+
+  .spill.idle {
+    background: var(--pink4);
+    color: var(--pink3);
+  }
+
+  .spill.waiting {
+    background: rgba(236,72,153,0.12);
+    color: var(--pink2);
+  }
+
+  @keyframes fl{
+    0%,100%{opacity: 1}
+    50%{opacity: 0.4};
+  }
+  .button_out {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,92,138,0.2);
+    background: transparent;
+    color: var(--br_pink);
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .button_out:hover {
+    background: var(--br_pink2);
+  }
+
+  .empty {
+    text-align: center;
+    padding: 14px;
+    color: var(--font3);
+    font-size: 11px;
+  }
+
+  .lock_badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 7px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+  }
+
+  .lock_badge.unlocked {
+    color: var(--pink3);
+    border-color: rgba(244,114,182,0.3);
+    background: var(--pink4);
+  }
+
+  .lock_badge.reading {
+    color: var(--purple3);
+    border-color: rgba(192,132,252,0.3);
+    background: var(--purple4);
+  }
+
+  .lock_badge.writing {
+    color: var(--orange);
+    border-color: rgba(249,115,22,0.3);
+    background: var(--orange3);
+    animation: fl 1s infinite;
+  }
+
+  .activity_bar {
+    padding: 6px 14px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--font2);
+  }
+
+  .row_tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .row_tag.read {
+    background: var(--purple4);
+    color: var(--purple3);
+  }
+
+  .row_tag.write {
+    background: var(--orange3);
+    color: var(--orange);
+  }
+
+  .monitor_body {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 14px 16px;
+    min-height: 80px;
+    overflow-x: auto;
+  }
+  .thread_bar_block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 52px;
+  }
+
+  .thread_bar {
+    width: 42px;
+    border-radius: 6px 6px 0 0;
+    transition: height 0.4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .thread_bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .thread_bar_label {
+    font-size: 9px;
+    text-align: center;
+  }
+
+  .deadlock_warning {
+    display: none;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: var(--br_pink2);
+    border: 1px solid rgba(255,92,138,0.25);
+    border-radius: 8px;
+    color: var(--br_pink);
+    font-size: 12px;
+    font-weight: 500;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .deadlock_warning.show {
+    display: flex;
+    animation: fl 1s infinite;
+  }
+
+  .log_body {
+    height: 320px;
+    overflow-y: auto;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .log_entry {
+    padding: 5px 8px;
+    margin-bottom: 2px;
+    border-radius: 5px;
+    font-size: 10px;
+    line-height: 1.5;
+    animation: si 0.2s ease;
+    border-left: 2px solid transparent;
+    color: var(--font2);
+  }
+
+  .log_entry.LOGIN {
+    color: var(--pink3);
+    border-color: var(--pink2);
+    background: var(--pink4);
+  }
+
+  .log_entry.OUT {
+    color: var(--br_pink);
+    border-color: rgba(255,92,138,0.4);
+    background: var(--br_pink2);
+  }
+
+  .log_entry.READ {
+    color: var(--purple3);
+    border-color: var(--purple2);
+    background: var(--purple4);
+  }
+
+  .log_entry.WRITE {
+    color: var(--orange);
+    border-color: rgba(249,115,22,0.4);
+    background: var(--orange3);
+  }
+
+  .log_entry.WARN {
+    color: var(--orange);
+    border-color: rgba(249,115,22,0.4);
+    background: rgba(249,115,22,0.07);
+  }
+
+  .log_entry.BLOCK {
+    color: var(--pink2);
+    border-color: rgba(236,72,153,0.4);
+    background: rgba(236,72,153,0.08);
+  }
+
+  .log_entry.SYS,.log_entry.INFO {
+    color: var(--font2);
+    border-color: var(--border);
+  }
+
+  .log_entry_time {
+    opacity: 0.4;
+    margin-right: 5px
+  }
+
+  .button_clear {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--font2);
+    font-family: inherit;
+    font-size: 10px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .button_clear:hover {
+    background: var(--panel2)
+    ;color: var(--font);
+  }
+
+  .current_user_bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--font2);
+    background: rgba(0,0,0,0.1);
+  }
+
+  .current_user_id {
+    color: var(--purple3);
+    font-weight: 600;
+  }
+
+  .file_text {
+    width: 100%;
+    background: rgba(0,0,0,0.25);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: #9b6fc4;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 12px 14px;
+    resize: none;
+    outline: none;
+    line-height: 1.7;
+    min-height: 140px;
+    display: block;
+  }
+
+  .write_editor {
+    display: none;
+    padding: 10px 14px;
+    background: rgba(249,115,22,0.04);
+    border-bottom: 1px solid rgba(249,115,22,0.15);
+  }
+
+  .write_editor.show {
+    display: block;
+  }
+
+  .write_editor_label {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .write_area {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 8px;color: #c8762a;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 9px 11px;
+    resize: vertical;
+    outline: none;
+    min-height: 80px;
+    line-height: 1.7;
+  }
+
+  .button_commit {
+    margin-top: 6px;
+    padding: 7px 14px;
+    background: var(--orange3);
+    border: 1px solid rgba(249,115,22,0.3);
+    border-radius: 8px;color: var(--orange);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .button_commit:hover {
+    background: rgba(249,115,22,0.2);
+  }
+
+  .file_actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .file_button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .file_button.read {
+    color: var(--purple3);
+    border-color: rgba(192,132,252,0.3);
+    background: var(--purple4);
+  }
+
+  .file_button.read:hover {
+    background: rgba(192,132,252,0.22);
+  }
+
+  .file_button.write {
+    color: var(--orange);
+    border-color: rgba(249,115,22,0.3);
+    background: var(--orange3);
+  }
+
+  .file_button.write:hover {
+    background: rgba(249,115,22,0.22);
+  }
+
+  .file_button.release {
+    color: var(--pink3);
+    border-color: rgba(244,114,182,0.3);
+    background: var(--pink4);
+  } 
+
+  .file_button.release:hover {
+    background: rgba(244,114,182,0.22);
+  }
+
+  .label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--font2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+  }
+
+  .form_input {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--font);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 9px 11px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .form_input:focus {
+    border-color: var(--purple2);
+    background: var(--purple4);
+    box-shadow: 0 0 0 3px rgba(168,85,247,0.1);
+  }
+
+  .form_input option {
+    background: #1e0d30;
+  }
+
+  .form_group {
+    margin-bottom: 11px;
+  }
+
+  .form_row {
+    display: flex;gap: 8px;
+  }
+
+  .form_row .form_group {
+    flex: 1;
+  }
+
+  .button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg,var(--purple2),var(--pink2));
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(168,85,247,0.35);
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(168,85,247,0.5);
+  }
+
+  .button_secondary {
+    width: 100%;
+    padding: 9px;
+    margin-bottom: 6px;
+    color: var(--pink3);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid rgba(244,114,182,0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--pink4);
+  }
+
+  .button_secondary:hover {
+    background: rgba(244,114,182,0.2);
+    border-color: var(--pink);
+  }
+
+  .db_table,.audit_table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .db_table th,.audit_table th {
+    padding: 7px 10px;
+    text-align: left;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--font3);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;background: var(--panel);}
+
+  .db_table td,.audit_table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(61,26,92,0.4);
+    color: var(--font2);
+  }
+
+  .db_table td:first-child {
+    color: var(--purple3);
+    font-weight: 500;
+  }
+
+  .db_table tr:hover td,.audit_table tr:hover td {
+    background: rgba(192,132,252,0.04);
+  }
+
+  .button_del {
+    padding: 2px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    background: var(--br_pink2);
+    color: var(--br_pink);
+    border: 1px solid rgba(255,92,138,0.25);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .button_del:hover {
+    background: rgba(255,92,138,0.2);
+  }
+
+  .audit_table td {
+    font-size: 10px;
+  }
+
+  .table_wrap {
+    overflow-x: auto;
+    max-height: 380px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  @keyframes mfade {
+    from{opacity: 0}to{opacity: 1};
+  }
+
+  @keyframes mslide{ 
+    from{opacity: 0;transform: translateY(-16px)}to{opacity: 1;transform: translateY(0)};
+  }
+
+  .login_overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(8,2,14,0.75);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login_overlay.show {
+    display: flex;
+    animation: mfade 0.2s ease;
+  }
+
+  .overlay {
+    background: linear-gradient(160deg,rgba(28,10,46,0.98),rgba(18,6,30,0.99));
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 28px;
+    width: 400px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(168,85,247,0.1);
+    animation: mslide 0.25s ease;
+  }
+
+  .overlay_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .overlay_title {
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg,var(--purple3),var(--pink3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .overlay_close {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--font2);
+    cursor: pointer;
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .overlay_close:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--font);
+  }
+
+  input[type = range] {
+    width: 100%;
+    accent-color: var(--purple);
+    cursor: pointer;
+    margin: 4px 0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  </style>
+</head>
+
+<body>
+  <div id = "Sidebar" class = "sidebar">
+    <div id = "SidebarLogo" class = "sidebar_area">
+        <div class = "sidebar_name">ConRes</div>
+    </div>
+
+    <div id = "Capacity" class = "sidebar_semaphore">
+      <div class = "sidebar_semaphore_title">Available Capacity</div>
+      <div class = "sidebar_slots" id = "SidebarUserSlots"></div>
+      <div class = "sidebar_semaphore_text">
+        <span>Available</span>
+        <span class = "sidebar_semaphore_count">
+          <span id = "SidebarAvailability">4</span>
+          / <span id = "SidebarCapacity">4</span>
+        </span>
+      </div>
+    </div>
+
+    <nav id = "Navigation" class = "sidebar_navigation">
+      <div class = "navigation_section">
+        <div class = "navigation_section_title">Main</div>
+        <div class = "navigation_item active" onclick="show_page('Dashboard')">Dashboard</div>
+        <div class = "navigation_item" onclick="show_page('Sessions')">Sessions</div>
+        <div class = "navigation_item" onclick="show_page('File')">File Access</div>
+      </div>
+      <div class = "navigation_section">
+        <div class = "navigation_section_title">Admin</div>
+        <div class = "navigation_item" onclick="show_page('Users')">User Management</div>
+        <div class = "navigation_item" onclick="show_page('Audit')">Audit Log</div>
+      </div>
+    </nav>
+
+    <div class = "sidebar_bottom">
+      <button class = "button_login_sidebar" onclick="open_login()">Login User</button>
+    </div>
+  </div>
+
+  <div id = "Main" class = "main">
+    <div id = "Topbar" class = "topbar">
+        <div class = "topbar-title" id = "TopbarTitle">Dashboard</div>
+    </div>
+
+    <div id = "Page" class = "page">
+
+      <div id = "DashboardPage">
+        <div class = "info_row">
+          <div class = "info activeUsers">
+            <div class = "info_label">Active Users</div>
+            <div class = "info_value" id = "DashboardUsers">0</div>
+          </div>
+          <div class = "info readers">
+            <div class = "info_label">Reading</div>
+            <div class = "info_value" id = "DashboardReaders">0</div>
+          </div>
+          <div class = "info writers">
+            <div class = "info_label">Writing</div>
+            <div class = "info_value" id = "DashboardWriters">0</div>
+          </div>
+          <div class = "info queued">
+            <div class = "info_label">Queued</div>
+            <div class = "info_value" id = "DashboardWaiting">0</div>
+          </div>
+        </div>
+
+        <div id = "DeadlockWarning" class = "deadlock_warning">Potential Deadlock Detected</div>
+
+        <div class = "two_panels">
+          <div class = "panel">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--pink3)">Active Users</span>
+              </div>
+            </div>
+            <div class = "session_list" id = "DashboardActiveSession">
+              <div class = "empty">No Active User Sessions</div>
+            </div>
+          </div>
+          <div class = "panel">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--orange)">Queued Users</span>
+              </div>
+            </div>
+            <div class = "session_list" id = "DashboardWaitingSession">
+              <div class = "empty">No Users Queueing</div>
+            </div>
+          </div>
+        </div>
+
+        <div id = "ActivityMonitorPanel" class = "panel" style = "margin-bottom: 16px">
+          <div class = "panel_header">
+            <div class = "panel_title">
+              <span style = "color: var(--purple3)">Activity Monitor</span>
+            </div>
+          </div>
+          <div class = "monitor_body" id = "MonitorBody">
+            <div class = "empty">No Active User Sessions</div>
+          </div>
+        </div>
+
+        <div id = "LockStatusPanel" class = "panel">
+          <div id = "LockStatusHeader" class = "panel_header">
+            <div class = "panel_title">
+              <span style = "color: var(--purple3)">File Lock Status</span>
+            </div>
+            <span class = "lock_badge unlocked" id = "DashboardLockStatus">Unlocked</span>
+          </div>
+          <div class = "activity_bar" id = "DashboardActivtyBar">
+            <span style = "color: var(--font3)">File Currently Idle</span>
+          </div>
+        </div>
+      </div>
+
+      <div id = "SessionsPage" style = "display: none">
+        <div style = "display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 12px; color: var(--font2)">
+          <label class = "label" style = "margin: 0">Maximum Capacity</label>
+          <input type = "range" id = "CapacitySlider" min = "1" max = "20" value= "4" oninput = "on_slider_move(this.value)" style = "width: 160px">
+          <span style = "font-size: 14px; font-weight: 600; color: var(--purple3)" id = "CapacitySliderValue">4</span>
+        </div>
+
+        <div class = "two_panels">
+          <div class = "panel">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--pink3)">Active User Sessions</span>
+                </div>
+              </div>
+            <div class = "session_list" id = "NoUsers">
+              <div class = "empty">No Active Users</div>
+            </div>
+          </div>
+          <div class = "panel">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--orange)">Queued Users</span>
+                </div>
+            </div>
+            <div class = "session_list" id = "NoUsersQueued">
+              <div class = "empty">No Users Queueing</div>
+            </div>
+          </div>
+        </div>
+
+        <div class = "panel" style = "margin-top: 14px">
+          <div class = "panel_header">
+            <div class = "panel_title">
+              <span style = "color: var(--purple3)">Event Log</span>
+            </div>
+            <button class = "button_clear" onclick="clear_log()">Clear</button>
+          </div>
+          <div class = "log_body" id = "LogBody"></div>
+        </div>
+      </div>
+
+
+      <div id = "FilePage" style = "display: none">
+        <div id = "DeadlockWarningFile" class = "deadlock_warning">Potential Deadlock Detected</div>
+        <div class = "two_panels">
+          <div class = "panel span">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--orange)">ProductSpecification.txt</span>
+              </div>
+              <span class = "lock_badge unlocked" id = "LockStatus">Unlocked</span>
+            </div>
+            <div class = "current_user_bar">Selected User: 
+              <span class = "current_user_id" id = "CurrentUserId">No User Selected</span>
+            </div>
+            <div class = "activity_bar" id = "ActivityBar">
+              <span style = "color: var(--font3)">File Currently Idle</span>
+            </div>
+            <div id = "WriteLock" class = "write_editor">
+              <div class = "write_editor_label">Write Access — Exclusive Lock Active</div>
+              <textarea class = "write_area" id = "WriteArea"></textarea>
+              <button class = "button_commit" onclick="commit_write()">Commit Write and Release Lock</button>
+            </div>
+            <textarea class = "file_text" id = "FileText" readonly></textarea>
+            <div class = "file_actions">
+              <button class = "file_button read" onclick="file_operation('read')">Read File</button>
+              <button class = "file_button write" onclick="file_operation('write')">Write To File</button>
+              <button class = "file_button release" onclick="file_operation('release')">Exit File</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id = "UsersPage" style = "display: none">
+        <div class = "two_panels">
+          <div class = "panel">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--pink3)">Register New User</span>
+              </div>
+            </div>
+            <div style = "padding: 14px">
+              <div class = "form_group">
+                <label class = "label">User ID</label>
+                <input class = "form_input" id = "RegisterId" placeholder = "Enter User ID" maxlength = "8">
+              </div>
+              <div class = "form_group">
+                <label class = "label">Username</label>
+                <input class = "form_input" id = "RegisterUsername" placeholder = "Enter Username" maxlength = "20">
+              </div>
+              <div class = "form_group">
+                <label class = "label">Role</label>
+                <input class = "form_input" id = "RegisterRole" placeholder = "Enter Role" maxlength = "20">
+              </div>
+              <div class = "form_group">
+                <label class = "label">Password</label>
+                <input class = "form_input" type = "password" id = "RegisterPassword" placeholder = "Enter Password">
+              </div>
+              <button class = "button_secondary" onclick="register_user()">Register User</button>
+            </div>
+          </div>
+
+          <div class = "panel">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--purple3)">Change Password</span>
+              </div>
+            </div>
+            <div style = "padding: 14px">
+              <div class = "form_group">
+                <label class = "label">User ID</label>
+                <input class = "form_input" id = "ChangeId" placeholder = "Enter User ID" maxlength = "8">
+              </div>
+              <div class = "form_group">
+                <label class = "label">Current Password</label>
+                <input class = "form_input" type = "password" id = "ChangeCurrent" placeholder = "Enter Current Password">
+              </div>
+              <div class = "form_group">
+                <label class = "label">New Password</label>
+                <input class = "form_input" type = "password" id = "ChangeNew" placeholder = "Enter New Password">
+              </div>
+              <button class = "button" style = "margin-top: 6px" onclick="change_password()">Update Password</button>
+            </div>
+          </div>
+
+          <div class = "panel span">
+            <div class = "panel_header">
+              <div class = "panel_title">
+                <span style = "color: var(--purple3)">Registered Users</span>
+              </div>
+              <button class = "button_clear" onclick="load_users()">Refresh</button>
+            </div>
+            <div class = "table_wrap">
+              <table class = "db_table">
+                <thead>
+                  <tr>
+                    <th>USER ID</th>
+                    <th>USERNAME</th>
+                    <th>ROLE</th>
+                    <th>CREATED</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id = "UserTableBody">
+                  <tr><td colspan = "5" style = "text-align: center; color: var(--font3); padding: 20px">No Users Registered Yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id = "AuditPage" style = "display: none">
+        <div class = "panel">
+          <div class = "panel_header">
+            <div class = "panel_title">
+              <span style = "color: var(--orange)">Audit Log</span>
+            </div>
+            <button class = "button_clear" onclick="load_audit_log()">Refresh</button>
+          </div>
+          <div class = "table_wrap" style = "max-height: 560px">
+            <table class = "audit_table">
+              <thead>
+                <tr>
+                  <th>TIME</th>
+                  <th>USER ID</th>
+                  <th>USERNAME</th>
+                  <th>ACTION</th>
+                  <th>INFORMATION</th>
+                </tr>
+              </thead>
+              <tbody id = "AuditTableBody">
+                <tr><td colspan = "5" style = "text-align: center; color: var(--font3); padding: 20px">No User Activity Recorded</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id = "LoginPanel" class = "login_overlay">
+    <div id = "LoginBox" class = "overlay">
+      <div class = "overlay_header">
+        <div class = "overlay_title">&#128274; Authenticate</div>
+        <button id = "LoginCloseButton" class = "overlay_close" onclick="close_login()">&#10005;</button>
+      </div>
+      <div class = "form_group">
+        <label class = "label">User ID</label>
+        <input class = "form_input" id = "InputId" placeholder = "Enter User ID" maxlength = "8">
+      </div>
+      <div class = "form_group">
+        <label class = "label">Password</label>
+        <input class = "form_input" type = "password" id = "InputPassword" placeholder = "Enter Password"
+              onkeydown="if(event.key==='Enter') login()">
+      </div>
+      <button class = "button" onclick="login()">Login</button>
+    </div>
+  </div>
+
+  <script>
+    const pages = ['Dashboard', 'Sessions', 'File', 'Users', 'Audit'];
+    const pageTitles = {
+      Dashboard: {title: 'Dashboard'},
+      Sessions: {title: 'User Sessions'},
+      File: {title: 'File Access'},
+      Users: {title: 'User Management'},
+      Audit: {title: 'Audit Log'},
+    };
+
+    function show_page(pageName) {
+      document.getElementById('TopbarTitle').textContent = pageTitles[pageName].title;
+      pages.forEach(function(page) {
+        if (page === pageName) {
+          document.getElementById(page + 'Page').style.display = '';
+        }
+        else {
+          document.getElementById(page + 'Page').style.display = 'none';
+        }
+      });
+      
+      document.querySelectorAll('.navigation_item').forEach(function(pageElement, page) {
+        if (pages[page] === pageName) {
+          pageElement.classList.add('active');
+        }
+        else {
+          pageElement.classList.remove('active');
+        }
+      });
+
+      if (pageName === 'Users') {
+        load_users()
+      };
+      if (pageName === 'Audit') {
+        load_audit_log()
+      };
+    }
+
+    function open_login() {
+      document.getElementById('LoginPanel').classList.add('show');
+      document.getElementById('InputId').value = '';
+      document.getElementById('InputPassword').value = '';
+      setTimeout(function() { 
+        document.getElementById('InputId').focus(); 
+      }, 50);
+    }
+
+    function close_login() {
+      document.getElementById('LoginPanel').classList.remove('show');
+      document.getElementById('InputId').value = '';
+      document.getElementById('InputPassword').value = '';
+    }
+
+    document.getElementById('LoginPanel').addEventListener('click', function(element) {
+      if (element.target === this) {
+        close_login();
+      }
+    });
+
+    async function api(path, body) {
+      let method;
+      let requestBody;
+      if (body) {
+        method = 'POST';
+        requestBody = JSON.stringify(body);
+      }
+      else {
+        method = 'GET';
+        requestBody = null;
+      }
+
+      const response = await fetch(path, {
+        method: method,
+        headers: {'Content-Type': 'application/json'},
+        body: requestBody
+      });
+
+      return response.json();
+    }
+
+    async function login() {
+      const id = document.getElementById('InputId').value.trim().toUpperCase();
+      const password = document.getElementById('InputPassword').value;
+      if (!id) {
+        alert('Please enter a user ID');
+        return;
+      }
+
+      if (!password) {
+        alert('Please enter a password');
+        return;
+      }
+
+      const r = await api('/api/login', {user_id: id, password: password});
+      if (r.okay === false) {
+        alert(r.error);
+        return;
+      }
+
+      if (r.status === 'queued') {
+        alert(r.username + ' Queued — ConRes At Maximum Capacity');
+      }
+      else {
+        alert(r.username + ' Logged In Successfully');
+      }
+
+      close_login();
+    }
+
+    async function logout(userId, event) {
+      event.stopPropagation();
+      const r = await api('/api/logout', {user_id: userId});
+      if (r.okay === false) {
+        alert(r.error);
+        return;
+      }
+      
+      if (selectedUserId === userId) {
+        selectedUserId = null;
+        document.getElementById('CurrentUserId').textContent = 'None — select from Sessions';
+      }
+    }
+
+    let sliderTimer = null;
+    function on_slider_move(value) {
+      document.getElementById('CapacitySliderValue').textContent = value;
+      clearTimeout(sliderTimer);
+      sliderTimer = setTimeout(function() {
+        api('/api/reconfigure', {capacity: parseInt(value)});
+      }, 300);
+  }
+
+    async function clear_log() {
+      await api('/api/clear_log', {});
+      document.getElementById('LogBody').innerHTML = '';
+    }
+
+    let selectedUserId = null;
+    async function file_operation(operation) {
+      if (!selectedUserId) {
+        alert('Select A User To Access File');
+        return;
+      }
+
+      if (operation === 'read'){
+        const r = await api('/api/read', {user_id: selectedUserId});
+        if (r.okay === false) {
+          alert(r.error);
+        }
+      }
+      else if (operation === 'write') {
+        const r = await api('/api/write', {user_id: selectedUserId});
+        if (r.okay === false) {
+          alert(r.error);
+          return;
+        }
+
+        document.getElementById('WriteArea').value = document.getElementById('FileText').value;
+        document.getElementById('WriteLock').classList.add('show');
+
+      }
+      else if (operation === 'release') {
+        document.getElementById('WriteLock').classList.remove('show');
+        const r = await api('/api/release', {user_id: selectedUserId});
+        if (r.okay === false){
+          alert(r.error);}
+      }
+    }
+
+    async function commit_write() {
+      await api('/api/commit', {user_id: selectedUserId, content: document.getElementById('WriteArea').value});
+      await api('/api/release', {user_id: selectedUserId});
+      document.getElementById('WriteLock').classList.remove('show');
+    }
+
+    async function register_user() {
+      const userId = document.getElementById('RegisterId').value;
+      const username = document.getElementById('RegisterUsername').value;
+      const role = document.getElementById('RegisterRole').value;
+      const password = document.getElementById('RegisterPassword').value;
+
+      if (!userId) {
+        alert('Please Enter A User ID');
+        return;
+      }
+      if (!username) {
+        alert('Please Enter A Username');
+        return;
+      }
+      if (!role) {
+        alert('Please Enter A Role');
+        return;
+      }
+
+      if (!password) {
+        alert('Please Enter A Password');
+        return;
+      }
+
+      const r = await api('/api/users/register', {
+        user_id: userId,
+        username: username,
+        role: role,
+        password: password
+      });
+
+      if (r.okay === false) {
+        alert(r.error);
+        return;
+      }
+
+      alert('User Registered Successfully');
+      document.getElementById('RegisterId').value = '';
+      document.getElementById('RegisterUsername').value = '';
+      document.getElementById('RegisterRole').value = '';
+      document.getElementById('RegisterPassword').value = '';
+      load_users();
+  }
+
+    async function change_password() {
+      const userId = document.getElementById('ChangeId').value;
+      const password = document.getElementById('ChangeCurrent').value;
+      const newPassword = document.getElementById('ChangeNew').value;
+
+      if (!userId) {
+        alert('Please Enter A User ID');
+        return;
+      }
+
+      if (!password) {
+        alert('Please Enter Current Password');
+        return;
+      }
+
+      if (!newPassword) {
+        alert('Please Enter New Password');
+        return;
+      }
+
+      const r = await api('/api/users/change_password', {
+        user_id: userId.toUpperCase(),
+        current_password: password,
+        new_password: newPassword
+      });
+
+      if (r.okay === false) {
+        alert(r.error);
+        return;
+      }
+
+      alert('Password Updated Successfully');
+      document.getElementById('ChangeId').value = '';
+      document.getElementById('ChangeCurrent').value = '';
+      document.getElementById('ChangeNew').value = '';
+    }
+
+    async function delete_user(userId) {
+      if (!confirm('Delete ' + userId + '?')) {
+        return;
+      }
+      const r = await api('/api/users/delete', {user_id: userId});
+      if (r.okay === false) {
+        alert(r.error);
+        return;
+      }
+      load_users();
+    }
+
+    async function load_users() {
+      const users = await api('/api/users');
+      const tbody = document.getElementById('UserTableBody');
+      tbody.innerHTML = '';
+
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan = "5" style = "text-align:center;color:var(--font3);padding:20px">No Users Registered Yet</td></tr>';
+        return;
+      }
+
+      users.forEach(function(user) {
+        const row = document.createElement('tr');
+        row.innerHTML =
+          '<td>' + user.user_id + '</td>' +
+          '<td>' + user.username + '</td>' +
+          '<td>' + user.role + '</td>' +
+          '<td>' + user.created_at.slice(0, 16) + '</td>' +
+          '<td><button class = "button_del" onclick="delete_user(\'' + user.user_id + '\')">Delete</button></td>';
+        tbody.appendChild(row);
+      });
+    }
+
+    async function load_audit_log() {
+      const rows = await api('/api/audit_log');
+      const tbody = document.getElementById('AuditTableBody');
+      tbody.innerHTML = '';
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan = "5" style = "text-align:center; color:var(--font3); padding:20px">No Entries Yet</td></tr>';
+        return;
+      }
+
+      const colours = {
+        LOGIN: 'var(--pink3)',
+        OUT: 'var(--br_pink)',
+        READ: 'var(--purple3)',
+        WRITE: 'var(--orange)',
+        WARN: 'var(--orange)',
+        BLOCK: 'var(--pink2)',
+        INFO: 'var(--font2)'
+      };
+
+      rows.forEach(function(row) {
+        const color = colours[row.category] || 'var(--font2)';
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td style = "color:var(--font3)">' + row.timestamp + '</td>' +
+          '<td style = "color:var(--purple3)">' + (row.user_id || '') + '</td>' +
+          '<td>' + (row.username || '') + '</td>' +
+          '<td style = "color:' + color + '">' + row.category + '</td>' +
+          '<td>' + (row.detail || '') + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    const avatar_colours = ['activeUsers', 'readers', 'writers', 'queued'];
+    const avatarColorMap = {};
+    let avatarColorIndex = 0;
+    function getAvatarColor(userId) {
+      if (!avatarColorMap[userId]) {
+        avatarColorMap[userId] = avatar_colours[avatarColorIndex % avatar_colours.length];
+        avatarColorIndex++;
+      }
+      return avatarColorMap[userId];
+    }
+
+    function generate_info_panel(user, isWaiting, queuePos) {
+      const userState = (user.state || 'IDLE').toLowerCase();
+      const isSelected = user.user_id === selectedUserId && !isWaiting;
+
+      let panelClass = 'upanel ';
+      if (isWaiting) {
+        panelClass = panelClass + 'waiting';
+      }
+      else {
+        panelClass = panelClass + userState;
+      }
+
+      if (isSelected) {
+        panelClass = panelClass + ' selection';
+      }
+
+      let midLabel;
+      if (isWaiting) {
+        midLabel = 'Queue #' + queuePos;
+      }
+      else {
+        midLabel = user.threadId || '';
+      }
+
+      let spillClass;
+      let spillLabel;
+
+      if (isWaiting) {
+        spillClass = 'waiting';
+        spillLabel = 'QUEUED';
+      }
+      else {
+        spillClass = userState;
+        spillLabel = user.state || 'IDLE';
+      }
+
+      let logoutBtn;
+      if (isWaiting) {
+        logoutBtn = '';
+      }
+      else {
+        logoutBtn = '<button class = "button_out" onclick="logout(\'' + user.user_id + '\', event)">&#10005;</button>';
+      }
+
+      const avatarColor = getAvatarColor(user.user_id);
+      const initials = user.username.slice(0, 2).toUpperCase();
+
+      const panel = document.createElement('div');
+      panel.className = panelClass;
+      panel.innerHTML =
+        '<div class = "avatar ' + avatarColor + '">' + initials + '</div>' +
+        '<div class = "user_info">' +
+            '<div class = "user_name">' + user.username + '</div>' +
+            '<div class = "user_mid">' + user.user_id + ' &middot; ' + midLabel + '</div>' +
+        '</div>' +
+        '<span class = "spill ' + spillClass + '">' + spillLabel + '</span>' + logoutBtn;
+
+      if (!isWaiting) {
+        panel.onclick = function() {
+          selectedUserId = user.user_id;
+          document.getElementById('CurrentUserId').textContent = user.user_id + ' (' + user.username + ')';
+          display(lastState);
+        };
+      }
+      return panel;
+    }
+
+    function display_session_list(activeUsers, waitingUsers) {
+      const lists = [
+        {id: 'DashboardActiveSession', users: activeUsers, waiting: false},
+        {id: 'DashboardWaitingSession', users: waitingUsers, waiting: true},
+        {id: 'NoUsers', users: activeUsers, waiting: false},
+        {id: 'NoUsersQueued', users: waitingUsers, waiting: true},
+      ];
+
+      lists.forEach(function(list) {
+        const listEntry = document.getElementById(list.id);
+        listEntry.innerHTML = '';
+        if (list.users.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+
+          if (list.waiting) {
+            empty.textContent = 'Queue Empty';
+          } 
+          else {
+            empty.textContent = 'No Active Sessions';
+          }
+          listEntry.appendChild(empty);
+        }
+        
+        else {
+          list.users.forEach(function(user, info) {
+            listEntry.appendChild(generate_info_panel(user, list.waiting, info + 1));
+          });
+        }
+      });
+    }
+
+    function display_lock(rw, activeUsers) {
+      const pairs = [
+        {badge: 'DashboardLockStatus', bar: 'DashboardActivtyBar'},
+        {badge: 'LockStatus', bar: 'ActivityBar'},
+      ];
+
+      pairs.forEach(function(pair) {
+        const badgeElement = document.getElementById(pair.badge);
+        const barElement = document.getElementById(pair.bar);
+        if (!badgeElement || !barElement) {
+          return;
+        };
+
+        if (rw.writer !== null) {
+          badgeElement.className = 'lock_badge writing';
+          badgeElement.textContent = 'Write Locked';
+          let writerName = rw.writer;
+          activeUsers.forEach(function(user) {
+            if (user.user_id === rw.writer) {
+              writerName = rw.writer + ' \u00b7 ' + user.username;
+            }
+          });
+
+          barElement.innerHTML = '<span style = "color:var(--font2)">Writing: </span><span class = "row_tag write">' + writerName + '</span>';
+
+        }
+        else if (rw.readerCount > 0) {
+          badgeElement.className = 'lock_badge reading';
+          badgeElement.textContent = 'Read Locked';
+          let html = '<span style = "color:var(--font2)">Reading: </span>';
+          rw.readers.forEach(function(userId) {
+            let readerLabel = userId;
+            activeUsers.forEach(function(u) {
+              if (u.user_id === userId) {
+                readerLabel = userId + ' \u00b7 ' + u.username;
+              }
+            });
+            html = html + '<span class = "row_tag read">' + readerLabel + '</span>';
+          });
+          barElement.innerHTML = html;
+        } 
+        
+        else {
+          badgeElement.className = 'lock_badge unlocked';
+          badgeElement.textContent = 'Unlocked';
+          barElement.innerHTML = '<span style = "color:var(--font3)">File Currently Idle</span>';
+        }
+    });
+  }
+
+    function display_log(log) {
+      const logBody = document.getElementById('LogBody');
+      logBody.innerHTML = '';
+      if (!log) {
+        return;
+      }
+
+      log.forEach(function(entry) {
+        const element = document.createElement('div');
+        element.className = 'log_entry ' + (entry.category || '');
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'log_entry_time';
+        timeSpan.textContent = '[' + entry.time + ']';
+        element.appendChild(timeSpan);
+        element.appendChild(document.createTextNode(entry.message));
+        logBody.appendChild(element);
+      });
+    }
+
+      function display_activity(activeUsers) {
+        const monitorBody = document.getElementById('MonitorBody');
+        monitorBody.innerHTML = '';
+
+        if (activeUsers.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = 'No Active User Sessions';
+          monitorBody.appendChild(empty);
+          return;
+        }
+
+        activeUsers.forEach(function(user) {
+          let barHeight;
+          let barColor;
+          let barBg;
+
+          if (user.state === 'WRITING') {
+            barHeight = 64;
+            barColor = 'var(--orange)';
+            barBg = 'rgba(249,115,22,0.35)';
+          }
+          
+          else if (user.state === 'READING') {
+            barHeight = 44;
+            barColor = 'var(--purple)';
+            barBg = 'rgba(192,132,252,0.35)';
+          }
+          
+          else {
+            barHeight = 22;
+            barColor = 'var(--pink)';
+            barBg = 'rgba(244,114,182,0.3)';
+          }
+
+          const block = document.createElement('div');
+          block.className = 'thread_bar_block';
+
+          const bar = document.createElement('div');
+          bar.className = 'thread_bar';
+          bar.style.height = barHeight + 'px';
+          bar.style.background = barBg;
+          bar.style.border = '1px solid ' + barColor + '55';
+          bar.style.boxShadow = '0 0 10px ' + barColor + '33';
+
+          const threadLabel = document.createElement('div');
+          threadLabel.className = 'thread_bar_label';
+          threadLabel.style.color = barColor;
+          threadLabel.textContent = user.threadId || '';
+
+          const idLabel = document.createElement('div');
+          idLabel.className = 'thread_bar_label';
+          idLabel.style.color = 'var(--font3)';
+          idLabel.textContent = user.user_id;
+
+          block.appendChild(bar);
+          block.appendChild(threadLabel);
+          block.appendChild(idLabel);
+          monitorBody.appendChild(block);
+        });
+      }
+
+      function display_slots(semaphore) {
+        const container = document.getElementById('SidebarUserSlots');
+        const occupied = semaphore.capacity - semaphore.available;
+        container.innerHTML = '';
+
+        for (let user = 0; user < semaphore.capacity; user++) {
+          const slot = document.createElement('div');
+          if (user < occupied) {
+            slot.className = 'sidebar_slot occ';
+          }
+          else {
+            slot.className = 'sidebar_slot';
+          }
+          container.appendChild(slot);
+        }
+
+        document.getElementById('SidebarAvailability').textContent = semaphore.available;
+        document.getElementById('SidebarCapacity').textContent = semaphore.capacity;
+      }
+
+      let lastState = {
+        activeUsers: [],
+        waitingUsers: [],
+        semaphore: {available: 4, capacity: 4},
+        rw: {writer: null, readers: [], readerCount: 0},
+        file: '',
+        log: []
+      };
+
+      function display(state) {
+        lastState = state;
+        document.getElementById('DashboardUsers').textContent = state.activeUsers.length;
+        document.getElementById('DashboardReaders').textContent = state.rw.readerCount;
+
+        if (state.rw.writer !== null) {
+          document.getElementById('DashboardWriters').textContent = 1;
+        }
+        else {
+          document.getElementById('DashboardWriters').textContent = 0;
+        }
+
+        document.getElementById('DashboardWaiting').textContent = state.waitingUsers.length;
+        document.getElementById('FileText').value = state.file;
+        display_slots(state.semaphore);
+        display_session_list(state.activeUsers, state.waitingUsers);
+        display_lock(state.rw, state.activeUsers);
+        display_log(state.log);
+        display_activity(state.activeUsers);
+      }
+
+      async function poll() {
+        try {
+          const state = await api('/api/state');
+          display(state);
+        } catch(error) {}
+      }
+
+      setInterval(poll, 500);
+      poll();
+      show_page('Dashboard');
+
+    </script>
+  </body>
+</html>
