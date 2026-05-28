@@ -3,6 +3,7 @@
 import threading
 import queue
 import time
+import os
 from datetime import datetime
 from collections import OrderedDict
 
@@ -13,14 +14,19 @@ class ConRes:
     def __init__(self, capacity = 4):
         self.capacity = capacity
         self.semaphore = threading.Semaphore(capacity)  #Counting semaphore, initial capacity at 4
-        self.rwLock = RWLock()
-
         self.activeUsers = CurrentSessions()    #Logged in users
         self.waitingUsers = queue.Queue(maxsize = 0)    #FIF queue for threads waiting for semaphore
-        self.fileActivity = UserAccessTracker()
         self.log = EventLog()
 
-        self.file = self.defaultFile()
+        self.resourceFiles = {
+            "product.txt": os.path.join(os.path.dirname(os.path.abspath(__file__)), "product.txt"),
+            "teamnotes.txt": os.path.join(os.path.dirname(os.path.abspath(__file__)), "teamnotes.txt"),
+        }
+        self.rwLocks = {resource: RWLock() for resource in self.resourceFiles}
+        self.fileActivity = {resource: UserAccessTracker() for resource in self.resourceFiles}
+        self.ensure_resource_files()
+        self.userResources = {}
+        self.userResourcesLock = threading.Lock()
         self.lock = threading.Lock()    #File content write lock
 
         self.info = dict(logins = 0, reads = 0, writes = 0, blocked = 0)
@@ -28,12 +34,85 @@ class ConRes:
 
         self.threads = 1    #Thread counter
         
-    def defaultFile(self):
+    def defaultFile(self, resource):
         return (
-            "ProductSpecification.txt" + '\n'
-            "Concurrency and  Communication Module" + '\n'
-            f"Last updated: {datetime.now():%Y-%m-%d %H:%M:%S}"
+            resource + '\n\n'
+            "Distributed Resource Access and Synchronisation Engine" + '\n\n'
+            "Some text."
         )
+
+    def ensure_resource_files(self):
+        for resource, path in self.resourceFiles.items():
+            if not os.path.exists(path):
+                with open(path, "w", encoding="utf-8") as file:
+                    file.write(self.defaultFile(resource))
+
+    def normalise_resource(self, resource):
+        name = (resource or "product.txt").strip().lower()
+        if name not in self.resourceFiles:
+            return "product.txt"
+        return name
+
+    def read_file(self, resource):
+        resource = self.normalise_resource(resource)
+        with open(self.resourceFiles[resource], "r", encoding="utf-8") as file:
+            return file.read()
+
+    def write_file(self, resource, content):
+        resource = self.normalise_resource(resource)
+        with open(self.resourceFiles[resource], "w", encoding="utf-8") as file:
+            file.write(content)
+
+    def locked_resource(self):
+        with self.userResourcesLock:
+            for locks in self.userResources.values():
+                for resource in locks:
+                    return resource
+            return None
+
+    def user_locked_resources(self, user_id):
+        with self.userResourcesLock:
+            return dict(self.userResources.get(user_id, {}))
+
+    def first_user_resource(self, user_id):
+        with self.userResourcesLock:
+            for resource in self.userResources.get(user_id, {}):
+                return resource
+            return None
+
+    def user_holds_lock(self, user_id):
+        with self.userResourcesLock:
+            return bool(self.userResources.get(user_id))
+
+    def user_resource(self, user_id, resource):
+        resource = self.normalise_resource(resource)
+        with self.userResourcesLock:
+            return self.userResources.get(user_id, {}).get(resource)
+
+    def reserve_user_resource(self, user_id, resource, mode):
+        resource = self.normalise_resource(resource)
+        with self.userResourcesLock:
+            locks = self.userResources.setdefault(user_id, {})
+            if resource in locks:
+                return False, resource
+            if mode == "WRITE" and locks:
+                return False, ", ".join(locks.keys())
+            if mode == "READ" and "WRITE" in locks.values():
+                return False, ", ".join(locks.keys())
+            locks[resource] = mode
+            return True, resource
+
+    def clear_user_resource(self, user_id, resource = None):
+        with self.userResourcesLock:
+            if resource is None:
+                return self.userResources.pop(user_id, None)
+            locks = self.userResources.get(user_id)
+            if not locks:
+                return None
+            removed = locks.pop(resource, None)
+            if not locks:
+                self.userResources.pop(user_id, None)
+            return removed
     
     def availability(self):
         return max(0, self.capacity - self.activeUsers.count())
@@ -117,16 +196,18 @@ class ConRes:
         if (not session):
             return {"okay": False, "error": "User not in active sessions."}
 
-        if (self.fileActivity.is_reader(user_id)):    #Auto release locks
-            self.rwLock.release_read_lock(user_id)
-            self.fileActivity.remove_reader(user_id)
-            self.log.add(f"Released: {user_id} read lock released.", "READ", user_id, session["username"])
-            
+        for heldResource, mode in self.user_locked_resources(user_id).items():
+            if (mode == "READ" and self.fileActivity[heldResource].is_reader(user_id)):    #Auto release locks
+                self.rwLocks[heldResource].release_read_lock(user_id)
+                self.fileActivity[heldResource].remove_reader(user_id)
+                self.clear_user_resource(user_id, heldResource)
+                self.log.add(f"Released: {user_id} read lock released for {heldResource}.", "READ", user_id, session["username"])
 
-        if self.fileActivity.is_writer(user_id):
-            self.rwLock.release_write_lock(user_id)
-            self.fileActivity.clear_writer(user_id)
-            self.log.add(f"Released: {user_id} write lock released.", "WRITE", user_id, session["username"])
+            if (mode == "WRITE" and self.fileActivity[heldResource].is_writer(user_id)):
+                self.rwLocks[heldResource].release_write_lock(user_id)
+                self.fileActivity[heldResource].clear_writer(user_id)
+                self.clear_user_resource(user_id, heldResource)
+                self.log.add(f"Released: {user_id} write lock released for {heldResource}.", "WRITE", user_id, session["username"])
 
         self.semaphore.release()    #Release to wake waiting threads
         self.log.add(
@@ -136,55 +217,70 @@ class ConRes:
         )
         return {"okay": True}
 
-    def acquire_read_lock(self, user_id):
+    def acquire_read_lock(self, user_id, resource = "product.txt"):
         session = self.activeUsers.get(user_id)  #Check user logged in
         if (not session):
             return {"okay": False, "error": "User not logged in."}
+        resource = self.normalise_resource(resource)
 
-        self.log.add(f"Read request: {user_id} acquiring shared read lock...", "READ", user_id, session["username"])
+        reserved, heldResource = self.reserve_user_resource(user_id, resource, "READ")
+        if (not reserved):
+            return {"okay": False, "error": f"{user_id} already holds a lock for {heldResource}."}
 
-        okay = self.rwLock.acquire_read_lock(user_id, timeout = 5) #Try to acquire lock, timeout after 5s
+        self.log.add(f"Read request: {user_id} acquiring shared read lock for {resource}...", "READ", user_id, session["username"])
+
+        rwLock = self.rwLocks[resource]
+        fileActivity = self.fileActivity[resource]
+        okay = rwLock.acquire_read_lock(user_id, timeout = 5) #Try to acquire lock, timeout after 5s
 
         if (okay):
             self.activeUsers.update_state(user_id, "READING")
-            self.fileActivity.add_reader(user_id)
+            fileActivity.add_reader(user_id)
             self.info_increment("reads")
-            state = self.rwLock.status()
+            state = rwLock.status()
             self.log.add(
-                f"Read lock: {user_id} - lock acquired. "
+                f"Read lock: {user_id} - {resource} lock acquired. "
                 f"{len(state['readers'])} concurrent reader(s).",
                 "READ", user_id, session["username"]
             )
         else:
-            
+            self.clear_user_resource(user_id, resource)
             self.log.add(
-                f"Read blocked: {user_id} - writer {self.rwLock.writerId} "
-                f"holds lock. Timeout 5s. Deadlock avoidance.",
+                f"Read blocked: {user_id} - writer {rwLock.writerId} "
+                f"holds {resource}. Timeout 5s. Deadlock avoidance.",
                 "WARN", user_id, session["username"]
             )
         return {"okay": okay, "error": "" if okay else "Read blocked - writer active (5s timeout)."}
     
-    def acquire_write_lock(self, user_id):
+    def acquire_write_lock(self, user_id, resource = "product.txt"):
         session = self.activeUsers.get(user_id)
         if (not session):
             return {"okay": False, "error": "User not logged in."}
+        resource = self.normalise_resource(resource)
 
-        self.log.add(f"Write Request: {user_id} acquiring exclusive write lock...", "WRITE", user_id, session["username"])
+        reserved, heldResource = self.reserve_user_resource(user_id, resource, "WRITE")
+        if (not reserved):
+            return {"okay": False, "error": f"{user_id} already holds a lock for {heldResource}. Release it first."}
 
-        okay = self.rwLock.acquire_write_lock(user_id, timeout = 5)
+        self.log.add(f"Write Request: {user_id} acquiring exclusive write lock for {resource}...", "WRITE", user_id, session["username"])
+
+        rwLock = self.rwLocks[resource]
+        fileActivity = self.fileActivity[resource]
+        okay = rwLock.acquire_write_lock(user_id, timeout = 5)
 
         if (okay):
             self.activeUsers.update_state(user_id, "WRITING")
-            self.fileActivity.set_writer(user_id)
+            fileActivity.set_writer(user_id)
             self.info_increment("writes")
             self.log.add(
-                f"Write lock: {user_id} - exclusive lock. All other readers/writers blocked.",
+                f"Write lock: {user_id} - exclusive lock for {resource}. All other readers/writers blocked.",
                 "WRITE", user_id, session["username"]
             )
         else:
-            state = self.rwLock.status()
+            self.clear_user_resource(user_id, resource)
+            state = rwLock.status()
             reason = (f"writer {state['writer']} holds lock" if state["writer"]
-                      else f"{state['reader_count']} reader(s) active")
+                      else f"{state['readerCount']} reader(s) active")
             self.log.add(
                 f"Write blocked: {user_id} - {reason}. "
                 f"Consistent lock order enforced. Deadlock prevented.",
@@ -192,27 +288,32 @@ class ConRes:
             )
         return {"okay": okay, "error": "" if okay else "Write blocked - resource busy (5s timeout)."}
     
-    def release(self, user_id):
+    def release(self, user_id, resource = None):
         session = self.activeUsers.get(user_id)
         released = False
+        resource = self.normalise_resource(resource) if resource else self.first_user_resource(user_id)
 
-        if (self.fileActivity.is_reader(user_id)):    #Check if user has read lock or not, true = release
-            self.rwLock.release_read_lock(user_id)
-            self.fileActivity.remove_reader(user_id)
-            self.activeUsers.update_state(user_id, "IDLE")
-            state = self.rwLock.status()
+        if (resource and self.fileActivity[resource].is_reader(user_id)):    #Check if user has read lock or not, true = release
+            self.rwLocks[resource].release_read_lock(user_id)
+            self.fileActivity[resource].remove_reader(user_id)
+            self.clear_user_resource(user_id, resource)
+            if (not self.user_holds_lock(user_id)):
+                self.activeUsers.update_state(user_id, "IDLE")
+            state = self.rwLocks[resource].status()
             self.log.add(
-                f"Read lock released: {user_id}. {state['reader_count']} reader(s) remain.",
+                f"Read lock released: {user_id} exited {resource}. {state['readerCount']} reader(s) remain.",
                 "READ", user_id, session["username"] if session else None
             )
             released = True
 
-        if (self.fileActivity.is_writer(user_id)):    #Check if user has write lock or not, true = release
-            self.rwLock.release_write_lock(user_id)
-            self.fileActivity.clear_writer(user_id)
-            self.activeUsers.update_state(user_id, "IDLE")
+        if (resource and self.fileActivity[resource].is_writer(user_id)):    #Check if user has write lock or not, true = release
+            self.rwLocks[resource].release_write_lock(user_id)
+            self.fileActivity[resource].clear_writer(user_id)
+            self.clear_user_resource(user_id, resource)
+            if (not self.user_holds_lock(user_id)):
+                self.activeUsers.update_state(user_id, "IDLE")
             self.log.add(
-                f"Write lock released: {user_id} - resource now available.",
+                f"Write lock released: {user_id} exited {resource} - resource now available.",
                 "WRITE", user_id, session["username"] if session else None
             )
             released = True
@@ -221,20 +322,21 @@ class ConRes:
             return {"okay": False, "error": "No lock held by this user."}
         return {"okay": True}
 
-    def commit_write(self, user_id, newContent):
+    def commit_write(self, user_id, newContent, resource = "product.txt"):
         session = self.activeUsers.get(user_id)
+        resource = self.normalise_resource(resource)
 
-        if( not self.fileActivity.is_writer(user_id)):
-            return {"ok": False, "error": "No write lock held."}
+        if(self.user_resource(user_id, resource) != "WRITE" or not self.fileActivity[resource].is_writer(user_id)):
+            return {"okay": False, "error": "Only the user holding the write lock can commit this file."}
 
         with self.lock:
-            self.file = newContent
+            self.write_file(resource, newContent)
 
         self.log.add(
-            f"Write commit: {user_id} saved changes.",
+            f"Write commit: {user_id} saved changes to {resource}.",
             "WRITE", user_id, session["username"] if session else None
         )
-        return {"ok": True}
+        return {"okay": True, "resource": resource}
     
     def update_slots(self, n):
         oldCapacity = self.capacity
@@ -247,12 +349,16 @@ class ConRes:
     def status(self):   #ReadOnly status of engine for connection to frontend API
         activeUsers = self.activeUsers.status()
         waitingUsers = self.waiting_list_peek()
-        rw = self.rwLock.status()
-        fileActivity = self.fileActivity.status()
+        rw = {resource: lock.status() for resource, lock in self.rwLocks.items()}
+        for resource, state in rw.items():
+            state["resource"] = resource
+        selectedResource = self.locked_resource() or "product.txt"
+        selectedRw = dict(rw[selectedResource])
+        fileActivity = {resource: tracker.status() for resource, tracker in self.fileActivity.items()}
         log = self.log.status(100)
 
         with self.lock:
-            content = self.file
+            files = {resource: self.read_file(resource) for resource in self.resourceFiles}
 
         with self.infoLock:
             info = dict(self.info)
@@ -265,9 +371,12 @@ class ConRes:
                 "capacity":       self.capacity,
                 "occupied":  self.activeUsers.count(),
             },
-            "rw":          rw,
+            "rw":          selectedRw,
+            "rwByResource": rw,
             "fileActivity": fileActivity,
-            "file":        content,
+            "resources":   list(self.resourceFiles.keys()),
+            "files":       files,
+            "file":        files["product.txt"],
             "log":        log,
             "info":       info,
         }
@@ -285,6 +394,9 @@ class RWLock:
     def acquire_read_lock(self, user_id, timeout = 5):
         timer = time.time() + timeout   #Block for 5s if locked
         with self.condition:
+            if user_id in self.readerIds:
+                return False
+
             while (self.writerId is not None):
                 remainingTime = timer - time.time()
                 if (remainingTime <= 0):
@@ -293,15 +405,15 @@ class RWLock:
 
             #If no write lock, increase reader count and record user
             self.readerCount += 1
-            with self.stateLock:
-                self.readerIds.add(user_id)
+            self.readerIds.add(user_id)
             return True
         
     def release_read_lock(self, user_id):
         with self.condition:
+            if user_id not in self.readerIds:
+                return
+            self.readerIds.discard(user_id)
             self.readerCount = max(0, self.readerCount - 1)
-            with self.stateLock:
-                self.readerIds.discard(user_id)
             #Wake waiting writer threads
             if (self.readerCount == 0):
                 self.condition.notify_all()
@@ -321,12 +433,10 @@ class RWLock:
             return True
         
     def release_write_lock(self, user_id):
-        with self.stateLock:
+        with self.condition:
             if (self.writerId != user_id):
                 return False
             self.writerId = None
-
-        with self.condition:
             self.condition.notify_all()
             try:
                 self.writerLock.release()
@@ -335,7 +445,7 @@ class RWLock:
             return True
         
     def status(self):
-        with self.stateLock:
+        with self.condition:
             return {
                 "readerCount": self.readerCount,
                 "readers": list(self.readerIds),

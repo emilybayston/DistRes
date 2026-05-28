@@ -32,20 +32,20 @@ def logout():
 
 @app.route("/api/read", methods = ["POST"])
 def read():
-    return jsonify(conRes.acquire_read_lock(request.json["user_id"]))
+    return jsonify(conRes.acquire_read_lock(request.json["user_id"], request.json.get("resource", "product.txt")))
 
 @app.route("/api/write", methods = ["POST"])
 def write():
-    return jsonify(conRes.acquire_write_lock(request.json["user_id"]))
+    return jsonify(conRes.acquire_write_lock(request.json["user_id"], request.json.get("resource", "product.txt")))
 
 @app.route("/api/release", methods = ["POST"])
 def release():
-    return jsonify(conRes.release(request.json["user_id"]))
+    return jsonify(conRes.release(request.json["user_id"], request.json.get("resource")))
 
 @app.route("/api/commit", methods = ["POST"])
 def commit():
     data = request.json
-    return jsonify(conRes.commit_write(data["user_id"], data["content"]))
+    return jsonify(conRes.commit_write(data["user_id"], data["content"], data.get("resource", "product.txt")))
 
 @app.route("/api/users")
 def users():

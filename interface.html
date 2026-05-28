@@ -1280,12 +1280,19 @@
           <div class = "panel span">
             <div class = "panel_header">
               <div class = "panel_title">
-                <span style = "color: var(--orange)">ProductSpecification.txt</span>
+                <span style = "color: var(--orange)">Shared Resource File</span>
               </div>
               <span class = "lock_badge unlocked" id = "LockStatus">Unlocked</span>
             </div>
             <div class = "current_user_bar">Selected User: 
               <span class = "current_user_id" id = "CurrentUserId">No User Selected</span>
+            </div>
+            <div style = "padding: 10px 14px; border-bottom: 1px solid var(--border)">
+              <label class = "label">Selected Shared File</label>
+              <select class = "form_input" id = "ResourceSelect" onchange = "on_resource_change()">
+                <option value = "product.txt">product.txt</option>
+                <option value = "teamnotes.txt">teamnotes.txt</option>
+              </select>
             </div>
             <div class = "activity_bar" id = "ActivityBar">
               <span style = "color: var(--font3)">File Currently Idle</span>
@@ -1571,6 +1578,32 @@
     }
 
     let selectedUserId = null;
+    let selectedResource = 'product.txt';
+
+    function on_resource_change() {
+      const requestedResource = document.getElementById('ResourceSelect').value;
+      selectedResource = requestedResource;
+      if (lastState.files) {
+        document.getElementById('FileText').value = lastState.files[selectedResource] || '';
+      }
+      document.getElementById('WriteLock').classList.remove('show');
+    }
+
+    function selected_user_locked_resource() {
+      if (!selectedUserId || !lastState.rwByResource) {
+        return null;
+      }
+      const resources = Object.keys(lastState.rwByResource);
+      for (let i = 0; i < resources.length; i++) {
+        const resource = resources[i];
+        const state = lastState.rwByResource[resource];
+        if (state.writer === selectedUserId || state.readers.indexOf(selectedUserId) !== -1) {
+          return resource;
+        }
+      }
+      return null;
+    }
+
     async function file_operation(operation) {
       if (!selectedUserId) {
         alert('Select A User To Access File');
@@ -1578,13 +1611,13 @@
       }
 
       if (operation === 'read'){
-        const r = await api('/api/read', {user_id: selectedUserId});
+        const r = await api('/api/read', {user_id: selectedUserId, resource: selectedResource});
         if (r.okay === false) {
           alert(r.error);
         }
       }
       else if (operation === 'write') {
-        const r = await api('/api/write', {user_id: selectedUserId});
+        const r = await api('/api/write', {user_id: selectedUserId, resource: selectedResource});
         if (r.okay === false) {
           alert(r.error);
           return;
@@ -1596,15 +1629,19 @@
       }
       else if (operation === 'release') {
         document.getElementById('WriteLock').classList.remove('show');
-        const r = await api('/api/release', {user_id: selectedUserId});
+        const r = await api('/api/release', {user_id: selectedUserId, resource: selectedResource});
         if (r.okay === false){
           alert(r.error);}
       }
     }
 
     async function commit_write() {
-      await api('/api/commit', {user_id: selectedUserId, content: document.getElementById('WriteArea').value});
-      await api('/api/release', {user_id: selectedUserId});
+      const r = await api('/api/commit', {user_id: selectedUserId, resource: selectedResource, content: document.getElementById('WriteArea').value});
+      if (r.okay === false) {
+        alert(r.error);
+        return;
+      }
+      await api('/api/release', {user_id: selectedUserId, resource: selectedResource});
       document.getElementById('WriteLock').classList.remove('show');
     }
 
@@ -1866,11 +1903,16 @@
       });
     }
 
-    function display_lock(rw, activeUsers) {
+    function display_lock(rw, activeUsers, rwByResource) {
       const pairs = [
         {badge: 'DashboardLockStatus', bar: 'DashboardActivtyBar'},
         {badge: 'LockStatus', bar: 'ActivityBar'},
       ];
+      const resourceStates = rwByResource || {};
+      const lockedResources = Object.keys(resourceStates).filter(function(resource) {
+        const state = resourceStates[resource];
+        return state.writer !== null || state.readerCount > 0;
+      });
 
       pairs.forEach(function(pair) {
         const badgeElement = document.getElementById(pair.badge);
@@ -1879,9 +1921,28 @@
           return;
         };
 
-        if (rw.writer !== null) {
+        if (lockedResources.length > 0 && pair.badge === 'DashboardLockStatus') {
+          badgeElement.className = 'lock_badge reading';
+          badgeElement.textContent = 'Locked: ' + lockedResources.join(', ');
+          let html = '';
+          lockedResources.forEach(function(resource) {
+            const state = resourceStates[resource];
+            if (state.writer !== null) {
+              html = html + '<span style = "color:var(--font2)">Writing ' + resource + ': </span><span class = "row_tag write">' + state.writer + '</span> ';
+            }
+            else {
+              html = html + '<span style = "color:var(--font2)">Reading ' + resource + ': </span>';
+              state.readers.forEach(function(userId) {
+                html = html + '<span class = "row_tag read">' + userId + '</span>';
+              });
+              html = html + ' ';
+            }
+          });
+          barElement.innerHTML = html;
+        }
+        else if (rw.writer !== null) {
           badgeElement.className = 'lock_badge writing';
-          badgeElement.textContent = 'Write Locked';
+          badgeElement.textContent = 'Write Locked: ' + (rw.resource || 'shared file');
           let writerName = rw.writer;
           activeUsers.forEach(function(user) {
             if (user.user_id === rw.writer) {
@@ -1889,13 +1950,13 @@
             }
           });
 
-          barElement.innerHTML = '<span style = "color:var(--font2)">Writing: </span><span class = "row_tag write">' + writerName + '</span>';
+          barElement.innerHTML = '<span style = "color:var(--font2)">Writing ' + (rw.resource || 'shared file') + ': </span><span class = "row_tag write">' + writerName + '</span>';
 
         }
         else if (rw.readerCount > 0) {
           badgeElement.className = 'lock_badge reading';
-          badgeElement.textContent = 'Read Locked';
-          let html = '<span style = "color:var(--font2)">Reading: </span>';
+          badgeElement.textContent = 'Read Locked: ' + (rw.resource || 'shared file');
+          let html = '<span style = "color:var(--font2)">Reading ' + (rw.resource || 'shared file') + ': </span>';
           rw.readers.forEach(function(userId) {
             let readerLabel = userId;
             activeUsers.forEach(function(u) {
@@ -2022,27 +2083,38 @@
         waitingUsers: [],
         semaphore: {available: 4, capacity: 4},
         rw: {writer: null, readers: [], readerCount: 0},
+        rwByResource: {},
+        files: {},
         file: '',
         log: []
       };
 
       function display(state) {
         lastState = state;
-        document.getElementById('DashboardUsers').textContent = state.activeUsers.length;
-        document.getElementById('DashboardReaders').textContent = state.rw.readerCount;
+        const rwByResource = state.rwByResource || {};
+        const selectedRw = rwByResource[selectedResource] || state.rw || {writer: null, readers: [], readerCount: 0};
+        const totalReaders = Object.keys(rwByResource).reduce(function(total, resource) {
+          return total + (rwByResource[resource].readerCount || 0);
+        }, 0);
+        const totalWriters = Object.keys(rwByResource).filter(function(resource) {
+          return rwByResource[resource].writer !== null;
+        }).length;
 
-        if (state.rw.writer !== null) {
-          document.getElementById('DashboardWriters').textContent = 1;
-        }
-        else {
-          document.getElementById('DashboardWriters').textContent = 0;
-        }
+        document.getElementById('DashboardUsers').textContent = state.activeUsers.length;
+        document.getElementById('DashboardReaders').textContent = Object.keys(rwByResource).length ? totalReaders : state.rw.readerCount;
+
+        document.getElementById('DashboardWriters').textContent = Object.keys(rwByResource).length ? totalWriters : (state.rw.writer !== null ? 1 : 0);
 
         document.getElementById('DashboardWaiting').textContent = state.waitingUsers.length;
-        document.getElementById('FileText').value = state.file;
+        if (state.files) {
+          document.getElementById('FileText').value = state.files[selectedResource] || '';
+        }
+        else {
+          document.getElementById('FileText').value = state.file;
+        }
         display_slots(state.semaphore);
         display_session_list(state.activeUsers, state.waitingUsers);
-        display_lock(state.rw, state.activeUsers);
+        display_lock(selectedRw, state.activeUsers, rwByResource);
         display_log(state.log);
         display_activity(state.activeUsers);
       }
