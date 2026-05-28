@@ -11,7 +11,7 @@ import threading
 import time
 from datetime import datetime
 
-import conRes
+import distRes
 import dataLayer
 
 
@@ -234,7 +234,7 @@ class SocketInterface:
     def __init__(self, capacity = 4):
         #Initialises storage once before any client requests are accepted
         dataLayer.userCredentialData.init()
-        self.distRes = conRes.DistRes(capacity = capacity)
+        self.distRes = distRes.DistRes(capacity = capacity)
         self.subscribers = PublishSubscribeService()
         self.coordinator = DistributedRequestCoordinator(self.distRes, self.subscribers)
         self.faultTolerance = FaultToleranceManager()
