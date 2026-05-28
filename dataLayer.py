@@ -1,4 +1,4 @@
-#Data-layer read/write processing for credentials, audit records and shared files
+#Data layer read/write processing for credentials, audit records and shared files
 
 import hashlib
 import os
@@ -84,7 +84,6 @@ class UserCredentialDataAccess:
 
     def register_user(self, user_id, username, role, password):
         #Writes a new credential row and reports duplicate user errors
-        #The database constraint catches repeated ids or usernames consistently
         with database.writeLock:
             con = database.connection()
             try:
@@ -149,8 +148,8 @@ class SharedFileDataAccess:
     def __init__(self, basePath):
         #The server owns both shared resources, clients never open these files directly
         self.resourceFiles = {
-            "product.txt": os.path.join(basePath, "product.txt"),
-            "teamnotes.txt": os.path.join(basePath, "teamnotes.txt"),
+            "ProductSpecification.txt": os.path.join(basePath, "ProductSpecification.txt"),
+            "TeamNotes.txt": os.path.join(basePath, "TeamNotes.txt"),
         }
 
     def default_file(self, resource):
@@ -170,9 +169,9 @@ class SharedFileDataAccess:
 
     def normalise_resource(self, resource):
         #Maps unknown resource names back to the default shared file
-        name = (resource or "product.txt").strip().lower()
+        name = (resource or "ProductSpecification.txt").strip().lower()
         if name not in self.resourceFiles:
-            return "product.txt"
+            return "ProductSpecification.txt"
         return name
 
     def read_file(self, resource):
@@ -184,7 +183,7 @@ class SharedFileDataAccess:
 
     def write_file(self, resource, content):
         #Writes committed content to one shared resource file
-        #Only the write-lock owner should reach this method through DistRes
+        #Only the write lock owner should reach this method through DistRes
         resource = self.normalise_resource(resource)
         with open(self.resourceFiles[resource], "w", encoding = "utf-8") as file:
             file.write(content)
@@ -197,5 +196,3 @@ class SharedFileDataAccess:
         #Returns the available distributed resource names
         return list(self.resourceFiles.keys())
 
-
-userCredentialData = UserCredentialDataAccess()
