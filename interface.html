@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>ConRes CW1</title>
+    <title>DistRes CW2</title>
     <style>
 
     :root{
@@ -1122,11 +1122,11 @@
 <body>
   <div id = "Sidebar" class = "sidebar">
     <div id = "SidebarLogo" class = "sidebar_area">
-        <div class = "sidebar_name">ConRes</div>
+        <div class = "sidebar_name">DistRes</div>
     </div>
 
     <div id = "Capacity" class = "sidebar_semaphore">
-      <div class = "sidebar_semaphore_title">Available Capacity</div>
+      <div class = "sidebar_semaphore_title">Server Session Capacity</div>
       <div class = "sidebar_slots" id = "SidebarUserSlots"></div>
       <div class = "sidebar_semaphore_text">
         <span>Available</span>
@@ -1142,7 +1142,7 @@
         <div class = "navigation_section_title">Main</div>
         <div class = "navigation_item active" onclick="show_page('Dashboard')">Dashboard</div>
         <div class = "navigation_item" onclick="show_page('Sessions')">Sessions</div>
-        <div class = "navigation_item" onclick="show_page('File')">File Access</div>
+        <div class = "navigation_item" onclick="show_page('File')">Resource Access</div>
       </div>
       <div class = "navigation_section">
         <div class = "navigation_section_title">Admin</div>
@@ -1222,12 +1222,12 @@
         <div id = "LockStatusPanel" class = "panel">
           <div id = "LockStatusHeader" class = "panel_header">
             <div class = "panel_title">
-              <span style = "color: var(--purple3)">File Lock Status</span>
+              <span style = "color: var(--purple3)">Distributed Resource Lock Status</span>
             </div>
             <span class = "lock_badge unlocked" id = "DashboardLockStatus">Unlocked</span>
           </div>
           <div class = "activity_bar" id = "DashboardActivtyBar">
-            <span style = "color: var(--font3)">File Currently Idle</span>
+            <span style = "color: var(--font3)">Resources Currently Idle</span>
           </div>
         </div>
       </div>
@@ -1280,7 +1280,7 @@
           <div class = "panel span">
             <div class = "panel_header">
               <div class = "panel_title">
-                <span style = "color: var(--orange)">Shared Resource File</span>
+                <span style = "color: var(--orange)">Distributed Shared Resource</span>
               </div>
               <span class = "lock_badge unlocked" id = "LockStatus">Unlocked</span>
             </div>
@@ -1288,14 +1288,14 @@
               <span class = "current_user_id" id = "CurrentUserId">No User Selected</span>
             </div>
             <div style = "padding: 10px 14px; border-bottom: 1px solid var(--border)">
-              <label class = "label">Selected Shared File</label>
+              <label class = "label">Selected Distributed File</label>
               <select class = "form_input" id = "ResourceSelect" onchange = "on_resource_change()">
                 <option value = "product.txt">product.txt</option>
                 <option value = "teamnotes.txt">teamnotes.txt</option>
               </select>
             </div>
             <div class = "activity_bar" id = "ActivityBar">
-              <span style = "color: var(--font3)">File Currently Idle</span>
+              <span style = "color: var(--font3)">Resource Currently Idle</span>
             </div>
             <div id = "WriteLock" class = "write_editor">
               <div class = "write_editor_label">Write Access — Exclusive Lock Active</div>
@@ -1304,9 +1304,9 @@
             </div>
             <textarea class = "file_text" id = "FileText" readonly></textarea>
             <div class = "file_actions">
-              <button class = "file_button read" onclick="file_operation('read')">Read File</button>
-              <button class = "file_button write" onclick="file_operation('write')">Write To File</button>
-              <button class = "file_button release" onclick="file_operation('release')">Exit File</button>
+              <button class = "file_button read" onclick="file_operation('read')">Read Resource</button>
+              <button class = "file_button write" onclick="file_operation('write')">Write Resource</button>
+              <button class = "file_button release" onclick="file_operation('release')">Exit Resource</button>
             </div>
           </div>
         </div>
@@ -1445,7 +1445,7 @@
     const pageTitles = {
       Dashboard: {title: 'Dashboard'},
       Sessions: {title: 'User Sessions'},
-      File: {title: 'File Access'},
+      File: {title: 'Resource Access'},
       Users: {title: 'User Management'},
       Audit: {title: 'Audit Log'},
     };
@@ -1540,7 +1540,7 @@
       }
 
       if (r.status === 'queued') {
-        alert(r.username + ' Queued — ConRes At Maximum Capacity');
+        alert(r.username + ' Queued - DistRes At Maximum Capacity');
       }
       else {
         alert(r.username + ' Logged In Successfully');
@@ -1606,7 +1606,7 @@
 
     async function file_operation(operation) {
       if (!selectedUserId) {
-        alert('Select A User To Access File');
+        alert('Select A User To Access A Resource');
         return;
       }
 
@@ -1972,7 +1972,7 @@
         else {
           badgeElement.className = 'lock_badge unlocked';
           badgeElement.textContent = 'Unlocked';
-          barElement.innerHTML = '<span style = "color:var(--font3)">File Currently Idle</span>';
+          barElement.innerHTML = '<span style = "color:var(--font3)">Resources Currently Idle</span>';
         }
     });
   }
