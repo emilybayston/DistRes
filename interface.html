@@ -27,6 +27,7 @@
       --orange: #fb923c;
       --orange2: #f97316;
       --orange3: rgba(251,146,60,0.12);
+      --green: #4ade80;
       --br_pink: #ff5c8a;
       --br_pink2: rgba(255,92,138,0.12);
       
@@ -1116,10 +1117,44 @@
     background: var(--border);
     border-radius: 3px;
   }
+
+  .connection_toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 80;
+    min-width: 220px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(14,5,20,0.96);
+    color: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    display: none;
+  }
+
+  .connection_toast.show {
+    display: block;
+  }
+
+  .connection_toast.disconnected {
+    color: var(--orange);
+    border-color: rgba(249,115,22,0.35);
+    background: rgba(34,18,8,0.96);
+  }
+
+  .connection_toast.reconnected {
+    color: var(--green);
+    border-color: rgba(74,222,128,0.35);
+    background: rgba(8,30,18,0.96);
+  }
   </style>
 </head>
 
 <body>
+  <div id = "ConnectionToast" class = "connection_toast"></div>
   <div id = "Sidebar" class = "sidebar">
     <div id = "SidebarLogo" class = "sidebar_area">
         <div class = "sidebar_name">DistRes</div>
@@ -1270,6 +1305,17 @@
             <button class = "button_clear" onclick="clear_log()">Clear</button>
           </div>
           <div class = "log_body" id = "LogBody"></div>
+        </div>
+
+        <div class = "panel" style = "margin-top: 14px">
+          <div class = "panel_header">
+            <div class = "panel_title">
+              <span style = "color: var(--pink3)">Publish-Subscribe Notifications</span>
+            </div>
+          </div>
+          <div class = "log_body" id = "NotificationBody">
+            <div class = "empty">No Server Updates Received</div>
+          </div>
         </div>
       </div>
 
@@ -1996,6 +2042,29 @@
       });
     }
 
+    function display_notifications(events) {
+      const notificationBody = document.getElementById('NotificationBody');
+      notificationBody.innerHTML = '';
+      if (!events || events.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No Server Updates Received';
+        notificationBody.appendChild(empty);
+        return;
+      }
+
+      events.slice(0, 8).forEach(function(event) {
+        const element = document.createElement('div');
+        element.className = 'log_entry INFO';
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'log_entry_time';
+        timeSpan.textContent = '[' + (event.time || '--:--:--') + ']';
+        element.appendChild(timeSpan);
+        element.appendChild(document.createTextNode(event.message || 'Server update received'));
+        notificationBody.appendChild(element);
+      });
+    }
+
       function display_activity(activeUsers) {
         const monitorBody = document.getElementById('MonitorBody');
         monitorBody.innerHTML = '';
@@ -2089,6 +2158,39 @@
         log: []
       };
 
+      let serverConnected = true;
+      let retryAttempt = 0;
+      let retryCycle = 3;
+      let retryDelay = 5000;
+      let recoveryDelay = 15000;
+      let toastTimer = null;
+
+      function show_connection_toast(message, mode) {
+        const toast = document.getElementById('ConnectionToast');
+        toast.textContent = message;
+        toast.className = 'connection_toast show ' + mode;
+        clearTimeout(toastTimer);
+        if (mode === 'reconnected') {
+          toastTimer = setTimeout(function() {
+            toast.className = 'connection_toast';
+          }, 2500);
+        }
+      }
+
+      function handle_connection_state(state) {
+        if (state && state.okay === false) {
+          serverConnected = false;
+          return false;
+        }
+
+        if (!serverConnected) {
+          show_connection_toast('Reconnected try ' + retryAttempt + '/' + retryCycle, 'reconnected');
+        }
+        serverConnected = true;
+        retryAttempt = 0;
+        return true;
+      }
+
       function display(state) {
         lastState = state;
         const rwByResource = state.rwByResource || {};
@@ -2116,17 +2218,38 @@
         display_session_list(state.activeUsers, state.waitingUsers);
         display_lock(selectedRw, state.activeUsers, rwByResource);
         display_log(state.log);
+        display_notifications(state.clientEvents || []);
         display_activity(state.activeUsers);
       }
 
       async function poll() {
         try {
           const state = await api('/api/state');
+          if (!handle_connection_state(state)) {
+            schedule_retry();
+            return;
+          }
           display(state);
-        } catch(error) {}
+          setTimeout(poll, 500);
+        } catch(error) {
+          serverConnected = false;
+          schedule_retry();
+        }
       }
 
-      setInterval(poll, 500);
+      function schedule_retry() {
+        retryAttempt = retryAttempt + 1;
+        if (retryAttempt <= retryCycle) {
+          show_connection_toast('Disconnected, retry ' + retryAttempt + '/' + retryCycle, 'disconnected');
+          setTimeout(poll, retryDelay);
+        }
+        else {
+          show_connection_toast('Disconnected, waiting 15s before retrying', 'disconnected');
+          retryAttempt = 0;
+          setTimeout(poll, recoveryDelay);
+        }
+      }
+
       poll();
       show_page('Dashboard');
 
