@@ -6,30 +6,30 @@
     <style>
 
     :root{
-      --background: #0e0514;
-      --background2: #160a1e;
-      --background3: #1a0d24;
-      --font: #f0d6ff;
-      --font2: #9b6fc4;
-      --font3: #4a2a6a;
-      --panel: #1e0d30;
-      --panel2: #241038;
-      --border: #3d1a5c;
-      --border2: #4a2070;
-      --purple: #c084fc;
-      --purple2: #a855f7;
-      --purple3: #e0aaff;
-      --purple4: rgba(192,132,252,0.12);
-      --pink: #f472b6;
-      --pink2: #ec4899;
-      --pink3: #fbb6d4;
-      --pink4: rgba(244,114,182,0.12);
-      --orange: #fb923c;
-      --orange2: #f97316;
-      --orange3: rgba(251,146,60,0.12);
-      --green: #4ade80;
-      --br_pink: #ff5c8a;
-      --br_pink2: rgba(255,92,138,0.12);
+      --background: #080817;
+      --background2: #111024;
+      --background3: #12172b;
+      --font: #d6e2ff;
+      --font2: #7b83d4;
+      --font3: #394584;
+      --panel: #151231;
+      --panel2: #19163c;
+      --border: #2b2d68;
+      --border2: #37418a;
+      --purple: #9b8cff;
+      --purple2: #7367f0;
+      --purple3: #c8d7ff;
+      --purple4: rgba(115,103,240,0.13);
+      --pink: #d77bf2;
+      --pink2: #b85de8;
+      --pink3: #f1c2ff;
+      --pink4: rgba(215,123,242,0.12);
+      --orange: #e9af4c;
+      --orange2: #ffc76c;
+      --orange3: rgba(248, 197, 56, 0.13);
+      --green: #5eead4;
+      --blue: #8fb6ff;
+      --blue2: rgba(143,182,255,0.14);
       
     }
 
@@ -61,16 +61,16 @@
       pointer-events: none;
       z-index: 0;
       background: 
-        radial-gradient(ellipse 60% 70% at 5% 20%,rgba(168,85,247,0.12),transparent 60%),
-        radial-gradient(ellipse 50% 50% at 95% 80%,rgba(244,114,182,0.1),transparent 60%),
-        radial-gradient(ellipse 40% 40% at 50% 50%,rgba(249,115,22,0.05),transparent 70%);
+        radial-gradient(ellipse 60% 70% at 5% 20%,rgba(115,103,240,0.14),transparent 60%),
+        radial-gradient(ellipse 50% 50% at 95% 80%,rgba(56,189,248,0.1),transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%,rgba(215,123,242,0.06),transparent 70%);
     }
 
     .sidebar {
       width: 260px;
       min-width: 260px;
       height: 100vh;
-      background: linear-gradient(180deg,rgba(30,13,48,0.98),rgba(20,8,34,0.99));
+      background: linear-gradient(180deg,rgba(21,18,49,0.98),rgba(10,10,28,0.99));
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
@@ -135,7 +135,7 @@
     .sidebar_slot.occ {
       background: var(--purple2);
       border-color: var(--purple);
-      box-shadow: 0 0 6px rgba(168,85,247,0.5);
+      box-shadow: 0 0 6px rgba(115,103,240,0.5);
     }
 
     .sidebar_semaphore_text {
@@ -191,12 +191,12 @@
     }
 
     .navigation_item:hover{
-      background: rgba(192,132,252,0.08);
+      background: rgba(56,189,248,0.08);
       color: var(--font);
     }
 
     .navigation_item.active {
-      background: rgba(192,132,252,0.14);
+      background: rgba(56,189,248,0.14);
       color: var(--purple3);
     }
 
@@ -212,11 +212,11 @@
       center;gap: 8px;
       width: 100%;
       padding: 10px;
-      background: linear-gradient(135deg,rgba(168,85,247,0.25),rgba(236,72,153,0.2));
+      background: linear-gradient(135deg,rgba(115,103,240,0.25),rgba(115,103,240,0.2));
       color: var(--purple3);
       font-size: 13px;
       font-weight: 600;
-      border: 1px solid rgba(168,85,247,0.35);
+      border: 1px solid rgba(115,103,240,0.35);
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
@@ -224,9 +224,9 @@
     }
 
     .button_login_sidebar:hover {
-      background: linear-gradient(135deg,rgba(168,85,247,0.35),rgba(236,72,153,0.3));
+      background: linear-gradient(135deg,rgba(115,103,240,0.35),rgba(115,103,240,0.3));
       border-color: var(--purple);
-      box-shadow: 0 0 20px rgba(168,85,247,0.3);
+      box-shadow: 0 0 20px rgba(115,103,240,0.3);
     }
 
     .main {
@@ -411,7 +411,7 @@
   }
 
   .upanel:hover {
-    background: rgba(192,132,252,0.06);
+    background: rgba(56,189,248,0.06);
   }
 
   .upanel.selection {
@@ -463,7 +463,7 @@
   }
 
   .avatar.queued {
-    background: rgba(236,72,153,0.12);
+    background: rgba(115,103,240,0.12);
     color: var(--pink2);
   }
 
@@ -512,7 +512,7 @@
   }
 
   .spill.waiting {
-    background: rgba(236,72,153,0.12);
+    background: rgba(115,103,240,0.12);
     color: var(--pink2);
   }
 
@@ -524,9 +524,9 @@
     width: 22px;
     height: 22px;
     border-radius: 5px;
-    border: 1px solid rgba(255,92,138,0.2);
+    border: 1px solid rgba(143,182,255,0.2);
     background: transparent;
-    color: var(--br_pink);
+    color: var(--blue);
     cursor: pointer;
     font-size: 10px;
     transition: all 0.2s;
@@ -537,7 +537,7 @@
   }
 
   .button_out:hover {
-    background: var(--br_pink2);
+    background: var(--blue2);
   }
 
   .empty {
@@ -560,19 +560,19 @@
 
   .lock_badge.unlocked {
     color: var(--pink3);
-    border-color: rgba(244,114,182,0.3);
+    border-color: rgba(143,182,255,0.3);
     background: var(--pink4);
   }
 
   .lock_badge.reading {
     color: var(--purple3);
-    border-color: rgba(192,132,252,0.3);
+    border-color: rgba(56,189,248,0.3);
     background: var(--purple4);
   }
 
   .lock_badge.writing {
     color: var(--orange);
-    border-color: rgba(249,115,22,0.3);
+    border-color: rgba(56,189,248,0.3);
     background: var(--orange3);
     animation: fl 1s infinite;
   }
@@ -650,10 +650,10 @@
     display: none;
     margin-bottom: 14px;
     padding: 10px 14px;
-    background: var(--br_pink2);
-    border: 1px solid rgba(255,92,138,0.25);
+    background: var(--blue2);
+    border: 1px solid rgba(143,182,255,0.25);
     border-radius: 8px;
-    color: var(--br_pink);
+    color: var(--blue);
     font-size: 12px;
     font-weight: 500;
     gap: 8px;
@@ -691,9 +691,9 @@
   }
 
   .log_entry.OUT {
-    color: var(--br_pink);
-    border-color: rgba(255,92,138,0.4);
-    background: var(--br_pink2);
+    color: var(--blue);
+    border-color: rgba(143,182,255,0.4);
+    background: var(--blue2);
   }
 
   .log_entry.READ {
@@ -704,20 +704,20 @@
 
   .log_entry.WRITE {
     color: var(--orange);
-    border-color: rgba(249,115,22,0.4);
+    border-color: rgba(56,189,248,0.4);
     background: var(--orange3);
   }
 
   .log_entry.WARN {
     color: var(--orange);
-    border-color: rgba(249,115,22,0.4);
-    background: rgba(249,115,22,0.07);
+    border-color: rgba(56,189,248,0.4);
+    background: rgba(56,189,248,0.07);
   }
 
   .log_entry.BLOCK {
     color: var(--pink2);
-    border-color: rgba(236,72,153,0.4);
-    background: rgba(236,72,153,0.08);
+    border-color: rgba(115,103,240,0.4);
+    background: rgba(115,103,240,0.08);
   }
 
   .log_entry.SYS,.log_entry.INFO {
@@ -768,7 +768,7 @@
     background: rgba(0,0,0,0.25);
     border: none;
     border-bottom: 1px solid var(--border);
-    color: #9b6fc4;
+    color: #8790d8;
     font-family: inherit;
     font-size: 11px;
     padding: 12px 14px;
@@ -782,8 +782,8 @@
   .write_editor {
     display: none;
     padding: 10px 14px;
-    background: rgba(249,115,22,0.04);
-    border-bottom: 1px solid rgba(249,115,22,0.15);
+    background: rgba(56,189,248,0.04);
+    border-bottom: 1px solid rgba(56,189,248,0.15);
   }
 
   .write_editor.show {
@@ -802,8 +802,8 @@
   .write_area {
     width: 100%;
     background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(249,115,22,0.2);
-    border-radius: 8px;color: #c8762a;
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 8px;color: #6ccfff;
     font-family: inherit;
     font-size: 11px;
     padding: 9px 11px;
@@ -817,7 +817,7 @@
     margin-top: 6px;
     padding: 7px 14px;
     background: var(--orange3);
-    border: 1px solid rgba(249,115,22,0.3);
+    border: 1px solid rgba(56,189,248,0.3);
     border-radius: 8px;color: var(--orange);
     font-family: inherit;
     font-size: 12px;
@@ -827,7 +827,7 @@
   }
 
   .button_commit:hover {
-    background: rgba(249,115,22,0.2);
+    background: rgba(56,189,248,0.2);
   }
 
   .file_actions {
@@ -854,32 +854,32 @@
 
   .file_button.read {
     color: var(--purple3);
-    border-color: rgba(192,132,252,0.3);
+    border-color: rgba(56,189,248,0.3);
     background: var(--purple4);
   }
 
   .file_button.read:hover {
-    background: rgba(192,132,252,0.22);
+    background: rgba(56,189,248,0.22);
   }
 
   .file_button.write {
     color: var(--orange);
-    border-color: rgba(249,115,22,0.3);
+    border-color: rgba(56,189,248,0.3);
     background: var(--orange3);
   }
 
   .file_button.write:hover {
-    background: rgba(249,115,22,0.22);
+    background: rgba(56,189,248,0.22);
   }
 
   .file_button.release {
     color: var(--pink3);
-    border-color: rgba(244,114,182,0.3);
+    border-color: rgba(143,182,255,0.3);
     background: var(--pink4);
   } 
 
   .file_button.release:hover {
-    background: rgba(244,114,182,0.22);
+    background: rgba(143,182,255,0.22);
   }
 
   .label {
@@ -908,11 +908,11 @@
   .form_input:focus {
     border-color: var(--purple2);
     background: var(--purple4);
-    box-shadow: 0 0 0 3px rgba(168,85,247,0.1);
+    box-shadow: 0 0 0 3px rgba(115,103,240,0.1);
   }
 
   .form_input option {
-    background: #1e0d30;
+    background: #151231;
   }
 
   .form_group {
@@ -939,12 +939,12 @@
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 16px rgba(168,85,247,0.35);
+    box-shadow: 0 4px 16px rgba(115,103,240,0.35);
   }
 
   .button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(168,85,247,0.5);
+    box-shadow: 0 6px 24px rgba(115,103,240,0.5);
   }
 
   .button_secondary {
@@ -955,7 +955,7 @@
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    border: 1px solid rgba(244,114,182,0.3);
+    border: 1px solid rgba(143,182,255,0.3);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -963,7 +963,7 @@
   }
 
   .button_secondary:hover {
-    background: rgba(244,114,182,0.2);
+    background: rgba(143,182,255,0.2);
     border-color: var(--pink);
   }
 
@@ -997,22 +997,22 @@
   }
 
   .db_table tr:hover td,.audit_table tr:hover td {
-    background: rgba(192,132,252,0.04);
+    background: rgba(56,189,248,0.04);
   }
 
   .button_del {
     padding: 2px 8px;
     font-size: 9px;
     font-weight: 700;
-    background: var(--br_pink2);
-    color: var(--br_pink);
-    border: 1px solid rgba(255,92,138,0.25);
+    background: var(--blue2);
+    color: var(--blue);
+    border: 1px solid rgba(143,182,255,0.25);
     border-radius: 4px;
     cursor: pointer;
     font-family: inherit;
   }
   .button_del:hover {
-    background: rgba(255,92,138,0.2);
+    background: rgba(143,182,255,0.2);
   }
 
   .audit_table td {
@@ -1057,7 +1057,7 @@
     border-radius: 16px;
     padding: 28px;
     width: 400px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(168,85,247,0.1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(115,103,240,0.1);
     animation: mslide 0.25s ease;
   }
 
@@ -1141,7 +1141,7 @@
 
   .connection_toast.disconnected {
     color: var(--orange);
-    border-color: rgba(249,115,22,0.35);
+    border-color: rgba(56,189,248,0.35);
     background: rgba(34,18,8,0.96);
   }
 
@@ -1150,11 +1150,61 @@
     border-color: rgba(74,222,128,0.35);
     background: rgba(8,30,18,0.96);
   }
+
+  .write_toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 85;
+    width: 190px;
+    min-height: 150px;
+    padding: 16px;
+    border: 1px solid rgba(143,182,255,0.4);
+    border-radius: 6px;
+    background: rgba(26,10,32,0.97);
+    color: var(--font);
+    box-shadow: 0 16px 36px rgba(0,0,0,0.38);
+    display: none;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .write_toast.show {
+    display: flex;
+  }
+
+  .write_toast_label {
+    color: var(--pink3);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .write_toast_message {
+    color: var(#FFFFFF);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .write_toast_time {
+    color: var(--font3);
+    font-size: 11px;
+    font-weight: 600;
+  }
   </style>
 </head>
 
 <body>
   <div id = "ConnectionToast" class = "connection_toast"></div>
+  <div id = "WriteToast" class = "write_toast" aria-live = "polite">
+    <div class = "write_toast_label">Write Complete</div>
+    <div id = "WriteToastMessage" class = "write_toast_message"></div>
+    <div id = "WriteToastTime" class = "write_toast_time"></div>
+  </div>
   <div id = "Sidebar" class = "sidebar">
     <div id = "SidebarLogo" class = "sidebar_area">
         <div class = "sidebar_name">DistRes</div>
@@ -1307,16 +1357,6 @@
           <div class = "log_body" id = "LogBody"></div>
         </div>
 
-        <div class = "panel" style = "margin-top: 14px">
-          <div class = "panel_header">
-            <div class = "panel_title">
-              <span style = "color: var(--pink3)">Publish-Subscribe Notifications</span>
-            </div>
-          </div>
-          <div class = "log_body" id = "NotificationBody">
-            <div class = "empty">No Server Updates Received</div>
-          </div>
-        </div>
       </div>
 
 
@@ -1336,8 +1376,8 @@
             <div style = "padding: 10px 14px; border-bottom: 1px solid var(--border)">
               <label class = "label">Selected Distributed File</label>
               <select class = "form_input" id = "ResourceSelect" onchange = "on_resource_change()">
-                <option value = "product.txt">product.txt</option>
-                <option value = "teamnotes.txt">teamnotes.txt</option>
+                <option value = "ProductSpecification.txt">ProductSpecification.txt</option>
+                <option value = "TeamNotes.txt">TeamNotes.txt</option>
               </select>
             </div>
             <div class = "activity_bar" id = "ActivityBar">
@@ -1496,6 +1536,7 @@
       Audit: {title: 'Audit Log'},
     };
 
+    // Moves between the main pages without reloading the browser
     function show_page(pageName) {
       document.getElementById('TopbarTitle').textContent = pageTitles[pageName].title;
       pages.forEach(function(page) {
@@ -1524,6 +1565,7 @@
       };
     }
 
+    // Opens the login box and gets it ready for a user id
     function open_login() {
       document.getElementById('LoginPanel').classList.add('show');
       document.getElementById('InputId').value = '';
@@ -1533,6 +1575,7 @@
       }, 50);
     }
 
+    // Closes the login box and clears the typed credentials
     function close_login() {
       document.getElementById('LoginPanel').classList.remove('show');
       document.getElementById('InputId').value = '';
@@ -1545,6 +1588,7 @@
       }
     });
 
+    // Sends one browser request to the Flask API and returns the JSON response
     async function api(path, body) {
       let method;
       let requestBody;
@@ -1566,7 +1610,13 @@
       return response.json();
     }
 
+    // Logs this browser in as one user so it behaves like one client node
     async function login() {
+      if (selectedUserId) {
+        alert('This client is already logged in as ' + selectedUserId + '. Logout before using another account.');
+        return;
+      }
+
       const id = document.getElementById('InputId').value.trim().toUpperCase();
       const password = document.getElementById('InputPassword').value;
       if (!id) {
@@ -1586,15 +1636,20 @@
       }
 
       if (r.status === 'queued') {
+        selectedUserId = id;
+        document.getElementById('CurrentUserId').textContent = id + ' (' + r.username + ')';
         alert(r.username + ' Queued - DistRes At Maximum Capacity');
       }
       else {
+        selectedUserId = id;
+        document.getElementById('CurrentUserId').textContent = id + ' (' + r.username + ')';
         alert(r.username + ' Logged In Successfully');
       }
 
       close_login();
     }
 
+    // Logs out the current browser user and clears their selected session
     async function logout(userId, event) {
       event.stopPropagation();
       const r = await api('/api/logout', {user_id: userId});
@@ -1605,11 +1660,12 @@
       
       if (selectedUserId === userId) {
         selectedUserId = null;
-        document.getElementById('CurrentUserId').textContent = 'None — select from Sessions';
+        document.getElementById('CurrentUserId').textContent = 'No User Selected';
       }
     }
 
     let sliderTimer = null;
+    // Waits briefly before sending capacity changes so the server is not spammed
     function on_slider_move(value) {
       document.getElementById('CapacitySliderValue').textContent = value;
       clearTimeout(sliderTimer);
@@ -1618,14 +1674,16 @@
       }, 300);
   }
 
+    // Clears the server event log shown on the dashboard
     async function clear_log() {
       await api('/api/clear_log', {});
       document.getElementById('LogBody').innerHTML = '';
     }
 
     let selectedUserId = null;
-    let selectedResource = 'product.txt';
+    let selectedResource = 'ProductSpecification.txt';
 
+    // Updates the selected shared file and refreshes the text area
     function on_resource_change() {
       const requestedResource = document.getElementById('ResourceSelect').value;
       selectedResource = requestedResource;
@@ -1635,6 +1693,7 @@
       document.getElementById('WriteLock').classList.remove('show');
     }
 
+    // Finds the file currently locked by the logged-in browser user
     function selected_user_locked_resource() {
       if (!selectedUserId || !lastState.rwByResource) {
         return null;
@@ -1650,9 +1709,10 @@
       return null;
     }
 
+    // Sends read, write or release requests for the selected resource
     async function file_operation(operation) {
       if (!selectedUserId) {
-        alert('Select A User To Access A Resource');
+        alert('Login before accessing a resource');
         return;
       }
 
@@ -1681,6 +1741,7 @@
       }
     }
 
+    // Sends edited file text to the server after a write lock has been granted
     async function commit_write() {
       const r = await api('/api/commit', {user_id: selectedUserId, resource: selectedResource, content: document.getElementById('WriteArea').value});
       if (r.okay === false) {
@@ -1691,6 +1752,7 @@
       document.getElementById('WriteLock').classList.remove('show');
     }
 
+    // Creates a new user through the server-side user management route
     async function register_user() {
       const userId = document.getElementById('RegisterId').value;
       const username = document.getElementById('RegisterUsername').value;
@@ -1735,6 +1797,7 @@
       load_users();
   }
 
+    // Sends a password update request through the server
     async function change_password() {
       const userId = document.getElementById('ChangeId').value;
       const password = document.getElementById('ChangeCurrent').value;
@@ -1772,6 +1835,7 @@
       document.getElementById('ChangeNew').value = '';
     }
 
+    // Deletes a user only if the server confirms they are not active
     async function delete_user(userId) {
       if (!confirm('Delete ' + userId + '?')) {
         return;
@@ -1784,6 +1848,7 @@
       load_users();
     }
 
+    // Loads registered users into the admin table
     async function load_users() {
       const users = await api('/api/users');
       const tbody = document.getElementById('UserTableBody');
@@ -1806,6 +1871,7 @@
       });
     }
 
+    // Loads audit records written by server-side events
     async function load_audit_log() {
       const rows = await api('/api/audit_log');
       const tbody = document.getElementById('AuditTableBody');
@@ -1818,7 +1884,7 @@
 
       const colours = {
         LOGIN: 'var(--pink3)',
-        OUT: 'var(--br_pink)',
+        OUT: 'var(--blue)',
         READ: 'var(--purple3)',
         WRITE: 'var(--orange)',
         WARN: 'var(--orange)',
@@ -1842,6 +1908,7 @@
     const avatar_colours = ['activeUsers', 'readers', 'writers', 'queued'];
     const avatarColorMap = {};
     let avatarColorIndex = 0;
+    // Gives each user a stable colour in the session panels
     function getAvatarColor(userId) {
       if (!avatarColorMap[userId]) {
         avatarColorMap[userId] = avatar_colours[avatarColorIndex % avatar_colours.length];
@@ -1850,9 +1917,11 @@
       return avatarColorMap[userId];
     }
 
+    // Builds one user card for active or queued sessions
     function generate_info_panel(user, isWaiting, queuePos) {
       const userState = (user.state || 'IDLE').toLowerCase();
       const isSelected = user.user_id === selectedUserId && !isWaiting;
+      const isOwnClient = user.user_id === selectedUserId;
 
       let panelClass = 'upanel ';
       if (isWaiting) {
@@ -1890,6 +1959,9 @@
       if (isWaiting) {
         logoutBtn = '';
       }
+      else if (!isOwnClient) {
+        logoutBtn = '';
+      }
       else {
         logoutBtn = '<button class = "button_out" onclick="logout(\'' + user.user_id + '\', event)">&#10005;</button>';
       }
@@ -1907,9 +1979,8 @@
         '</div>' +
         '<span class = "spill ' + spillClass + '">' + spillLabel + '</span>' + logoutBtn;
 
-      if (!isWaiting) {
+      if (!isWaiting && isOwnClient) {
         panel.onclick = function() {
-          selectedUserId = user.user_id;
           document.getElementById('CurrentUserId').textContent = user.user_id + ' (' + user.username + ')';
           display(lastState);
         };
@@ -1917,6 +1988,7 @@
       return panel;
     }
 
+    // Redraws active and waiting users on both dashboard and session pages
     function display_session_list(activeUsers, waitingUsers) {
       const lists = [
         {id: 'DashboardActiveSession', users: activeUsers, waiting: false},
@@ -1949,6 +2021,7 @@
       });
     }
 
+    // Shows which files are read locked or write locked
     function display_lock(rw, activeUsers, rwByResource) {
       const pairs = [
         {badge: 'DashboardLockStatus', bar: 'DashboardActivtyBar'},
@@ -2023,6 +2096,7 @@
     });
   }
 
+    // Redraws the live server event log
     function display_log(log) {
       const logBody = document.getElementById('LogBody');
       logBody.innerHTML = '';
@@ -2042,29 +2116,54 @@
       });
     }
 
+    let seenWriteNotifications = {};
+    let writeToastTimer = null;
+
+    // Creates a unique key so the same write notification is not shown twice
+    function write_notification_key(event) {
+      return [
+        event.type || '',
+        event.user_id || '',
+        event.resource || '',
+        event.time || '',
+        event.message || ''
+      ].join('|');
+    }
+
+    // Shows a small corner message when another write update is received
+    function show_write_toast(event) {
+      const toast = document.getElementById('WriteToast');
+      const message = document.getElementById('WriteToastMessage');
+      const time = document.getElementById('WriteToastTime');
+      message.textContent = 'User ' + (event.user_id || 'unknown') + ' is finished writing to ' + (event.resource || 'this file');
+      time.textContent = event.time ? '[' + event.time + ']' : '';
+      toast.className = 'write_toast show';
+      clearTimeout(writeToastTimer);
+      writeToastTimer = setTimeout(function() {
+        toast.className = 'write_toast';
+      }, 4500);
+    }
+
+    // Reads pushed update events and turns new write events into notifications
     function display_notifications(events) {
-      const notificationBody = document.getElementById('NotificationBody');
-      notificationBody.innerHTML = '';
       if (!events || events.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.textContent = 'No Server Updates Received';
-        notificationBody.appendChild(empty);
         return;
       }
 
-      events.slice(0, 8).forEach(function(event) {
-        const element = document.createElement('div');
-        element.className = 'log_entry INFO';
-        const timeSpan = document.createElement('span');
-        timeSpan.className = 'log_entry_time';
-        timeSpan.textContent = '[' + (event.time || '--:--:--') + ']';
-        element.appendChild(timeSpan);
-        element.appendChild(document.createTextNode(event.message || 'Server update received'));
-        notificationBody.appendChild(element);
+      events.slice().reverse().forEach(function(event) {
+        if (event.type !== 'resource_updated') {
+          return;
+        }
+        const key = write_notification_key(event);
+        if (seenWriteNotifications[key]) {
+          return;
+        }
+        seenWriteNotifications[key] = true;
+        show_write_toast(event);
       });
     }
 
+      // Draws the small activity bars used to show idle, reading and writing users
       function display_activity(activeUsers) {
         const monitorBody = document.getElementById('MonitorBody');
         monitorBody.innerHTML = '';
@@ -2085,19 +2184,19 @@
           if (user.state === 'WRITING') {
             barHeight = 64;
             barColor = 'var(--orange)';
-            barBg = 'rgba(249,115,22,0.35)';
+            barBg = 'rgba(56,189,248,0.35)';
           }
           
           else if (user.state === 'READING') {
             barHeight = 44;
             barColor = 'var(--purple)';
-            barBg = 'rgba(192,132,252,0.35)';
+            barBg = 'rgba(56,189,248,0.35)';
           }
           
           else {
             barHeight = 22;
             barColor = 'var(--pink)';
-            barBg = 'rgba(244,114,182,0.3)';
+            barBg = 'rgba(143,182,255,0.3)';
           }
 
           const block = document.createElement('div');
@@ -2127,6 +2226,7 @@
         });
       }
 
+      // Updates the sidebar capacity slots from the server semaphore state
       function display_slots(semaphore) {
         const container = document.getElementById('SidebarUserSlots');
         const occupied = semaphore.capacity - semaphore.available;
@@ -2165,6 +2265,7 @@
       let recoveryDelay = 15000;
       let toastTimer = null;
 
+      // Shows connection recovery messages in the corner of the interface
       function show_connection_toast(message, mode) {
         const toast = document.getElementById('ConnectionToast');
         toast.textContent = message;
@@ -2177,6 +2278,7 @@
         }
       }
 
+      // Checks whether the latest server state means connected or disconnected
       function handle_connection_state(state) {
         if (state && state.okay === false) {
           serverConnected = false;
@@ -2184,13 +2286,14 @@
         }
 
         if (!serverConnected) {
-          show_connection_toast('Reconnected try ' + retryAttempt + '/' + retryCycle, 'reconnected');
+          show_connection_toast('Connection Restored!', 'reconnected');
         }
         serverConnected = true;
         retryAttempt = 0;
         return true;
       }
 
+      // Redraws the whole interface from the latest server state snapshot
       function display(state) {
         lastState = state;
         const rwByResource = state.rwByResource || {};
@@ -2222,6 +2325,7 @@
         display_activity(state.activeUsers);
       }
 
+      // Repeatedly asks the Flask API for the latest state so the UI stays live
       async function poll() {
         try {
           const state = await api('/api/state');
@@ -2237,14 +2341,15 @@
         }
       }
 
+      // Controls the visible retry cycle when the server is unreachable
       function schedule_retry() {
         retryAttempt = retryAttempt + 1;
         if (retryAttempt <= retryCycle) {
-          show_connection_toast('Disconnected, retry ' + retryAttempt + '/' + retryCycle, 'disconnected');
+          show_connection_toast('Disconnected, Retry ' + retryAttempt + '/' + retryCycle, 'disconnected');
           setTimeout(poll, retryDelay);
         }
         else {
-          show_connection_toast('Disconnected, waiting 15s before retrying', 'disconnected');
+          show_connection_toast('Disconnected. Waiting 15s before retrying.', 'disconnected');
           retryAttempt = 0;
           setTimeout(poll, recoveryDelay);
         }

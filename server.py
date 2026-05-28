@@ -1,4 +1,8 @@
-#Socket server node for DistRes
+#Socket server for DistRes
+#Clients send JSON actions to this server over TCP
+#The server routes those actions to the coordination engine and data layer
+#It also keeps subscriber sockets open for write update notifications
+
 import json
 import select
 import socket
@@ -16,11 +20,12 @@ PORT = 5050
 
 
 class FaultToleranceManager:
-    #Keeps client request failures isolated from the main server
+    #Keeps bad client requests from taking down the server
 
+    #Runs a client action safely and sends back an error instead of crashing
     def safe_handle(self, action, payload, coordinator):
-        #Runs one request and converts failures into safe JSON responses
-        #This stops one failed client request from crashing the server thread
+        #Runs one request and turns unexpected errors into JSON replies
+        #One broken request should not crash the whole socket server
         try:
             return coordinator.handle_action(action, payload)
         except KeyError as error:
@@ -28,28 +33,32 @@ class FaultToleranceManager:
         except Exception as error:
             return {"okay": False, "error": str(error)}
 
+    #Turns one socket line into an action and payload the server can use
     def decode_request(self, line):
-        #Decodes one JSON request line from a client socket
-        #Each request works like a small RPC call with an action and payload
+        #Reads one JSON message sent by a client socket
+        #The action says which server operation the client wants
         request = json.loads(line.decode("utf-8"))
         return request.get("action"), request.get("payload", {})
 
+    #Turns one server response into the JSON line expected by the client
     def encode_response(self, response):
-        #Encodes one JSON response line for the client socket
+        #Turns a response dictionary back into a JSON line for the client
         return json.dumps(response).encode("utf-8") + b"\n"
 
 
 class PublishSubscribeService:
-    #Tracks clients waiting for server-side resource update notifications
+    #Keeps track of clients waiting for write update notifications
 
+    #Creates an empty subscriber list shared by all socket threads
     def __init__(self):
-        #The dictionary is protected because several socket threads can subscribe at once
+        #A lock is needed because several socket threads may subscribe at the same time
         self.subscribers = {}
         self.counter = 1
         self.lock = threading.Lock()
 
+    #Adds a connected client to the update notification list
     def add(self, handler, nodeId):
-        #Stores the open socket handler so later commits can push updates to it
+        #Stores this open socket so commits can push updates to it later
         with self.lock:
             subscriberId = "Subscriber" + str(self.counter)
             self.counter += 1
@@ -60,8 +69,9 @@ class PublishSubscribeService:
             }
             return subscriberId
 
+    #Removes a client when its subscription connection has ended
     def remove_handler(self, handler):
-        #Removes a subscriber when its socket closes or stops accepting events
+        #Drops a subscriber once its socket has closed or stopped accepting events
         with self.lock:
             removeIds = [
                 subscriberId for subscriberId, details in self.subscribers.items()
@@ -70,9 +80,10 @@ class PublishSubscribeService:
             for subscriberId in removeIds:
                 del self.subscribers[subscriberId]
 
+    #Pushes one write update to every client still connected as a subscriber
     def publish(self, event):
-        #Sends one committed update event to every connected subscriber
-        #Stale clients are removed so old browser sessions do not keep receiving events
+        #Sends a committed write event to every connected subscriber
+        #Any dead subscriber sockets are cleaned up during the publish
         staleHandlers = []
         notified = 0
         with self.lock:
@@ -89,8 +100,9 @@ class PublishSubscribeService:
 
         return notified
 
+    #Gives the dashboard a simple view of active subscribers
     def status(self):
-        #Returns a small dashboard snapshot of current subscription sockets
+        #Returns a small subscriber summary for the dashboard
         with self.lock:
             return {
                 "count": len(self.subscribers),
@@ -106,17 +118,19 @@ class PublishSubscribeService:
 
 
 class DistributedRequestCoordinator:
-    #Routes client actions to the server-side DistRes engine and data layer
+    #Maps incoming client actions to the correct server-side operation
 
+    #Keeps references to the coordination engine and notification service
     def __init__(self, distRes, subscribers):
-        #The coordinator owns no resources itself, it only directs requests to the right service
+        #The coordinator does not own resources, it just directs traffic
         self.distRes = distRes
         self.subscribers = subscribers
 
+    #Chooses which server operation should run for the requested action
     def handle_action(self, action, payload):
-        #Matches socket action names to application-layer operations
+        #Matches the client's action name to the application code that handles it
         if action == "state":
-            #State combines coordination data and subscriber data for dashboard polling
+            #State is used by the dashboard to redraw sessions, locks and files
             state = self.distRes.status()
             state["subscribers"] = self.subscribers.status()
             return state
@@ -131,14 +145,14 @@ class DistributedRequestCoordinator:
             #Read requests are passed to the application layer so lock rules are enforced first
             return self.distRes.acquire_read_lock(
                 payload["user_id"],
-                payload.get("resource", "product.txt")
+                payload.get("resource", "ProductSpecification.txt")
             )
 
         if action == "write":
             #Write requests ask for exclusive access before the file can be edited
             return self.distRes.acquire_write_lock(
                 payload["user_id"],
-                payload.get("resource", "product.txt")
+                payload.get("resource", "ProductSpecification.txt")
             )
 
         if action == "release":
@@ -149,7 +163,7 @@ class DistributedRequestCoordinator:
 
         if action == "commit":
             #Only a successful write commit is published to subscribers
-            resource = payload.get("resource", "product.txt")
+            resource = payload.get("resource", "ProductSpecification.txt")
             result = self.distRes.commit_write(
                 payload["user_id"],
                 payload["content"],
@@ -216,6 +230,7 @@ class DistributedRequestCoordinator:
 class SocketInterface:
     #Owns the DistRes engine and the server-side request helpers
 
+    #Builds the server application layer before clients start sending requests
     def __init__(self, capacity = 4):
         #Initialises storage once before any client requests are accepted
         dataLayer.userCredentialData.init()
@@ -224,6 +239,7 @@ class SocketInterface:
         self.coordinator = DistributedRequestCoordinator(self.distRes, self.subscribers)
         self.faultTolerance = FaultToleranceManager()
 
+    #Registers a client as a subscriber for future write notifications
     def subscribe(self, handler, payload):
         #Registers a long-lived client socket for publish-subscribe events
         #Unlike normal requests, this socket stays open so updates can be pushed later
@@ -235,10 +251,12 @@ class SocketInterface:
             "message": "Subscribed to server write updates"
         }
 
+    #Runs a decoded action through the fault tolerance wrapper
     def process_action(self, action, payload):
         #Runs an already decoded request through the fault tolerant coordinator
         return self.faultTolerance.safe_handle(action, payload, self.coordinator)
 
+    #Processes one raw socket message, mainly useful for simple tests
     def process_line(self, line):
         #Processes one socket request and returns one socket response
         try:
@@ -249,24 +267,26 @@ class SocketInterface:
         return self.faultTolerance.encode_response(response)
 
 
-SocketRPCInterface = SocketInterface
 socketInterface = SocketInterface(capacity = 4)
 
 
 class DistResRequestHandler(socketserver.StreamRequestHandler):
     #Handles one connected client socket
 
+    #Adds a lock so two replies are not written to the same socket at once
     def setup(self):
         #Creates a write lock so pushed events and direct replies cannot overlap
         super().setup()
         self.writeLock = threading.Lock()
 
+    #Sends one JSON object back to this connected client
     def send_json(self, response):
         #Writes one JSON response or event to this client socket
         with self.writeLock:
             self.wfile.write(socketInterface.faultTolerance.encode_response(response))
             self.wfile.flush()
 
+    #Sends a publish-subscribe event if this client is still connected
     def send_event(self, event):
         #Pushes a publish-subscribe event to a connected subscriber socket
         try:
@@ -275,8 +295,9 @@ class DistResRequestHandler(socketserver.StreamRequestHandler):
         except OSError:
             return False
 
+    #Handles both normal request sockets and subscription sockets
     def handle(self):
-        #Reads newline-delimited JSON requests until the client disconnects
+        #Reads JSON requests until the client disconnects
         try:
             for line in self.rfile:
                 action, payload = socketInterface.faultTolerance.decode_request(line)

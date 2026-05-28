@@ -1,4 +1,7 @@
-#Coordinates user sessions, resource lock ownership, shared file access and event logging
+#Main coordination engine for DistRes
+#This is where the ConRes ideas are kept: sessions, semaphores, queues and locks
+#The socket server calls this file when a client wants to login, read, write or commit
+#The data layer does the actual file/database work after this class allows it
 
 import threading
 import queue
@@ -12,11 +15,12 @@ import dataLayer
 class DistRes:
     #Coordinates login capacity, active users and safe access to shared resource files
 
+    #Builds the server-side coordination state used by all connected clients
     def __init__(self, capacity = 4):
         #This keeps the original ConRes coordination model as the core of DistRes
         self.capacity = capacity
         self.semaphoreControl = SemaphoreController(capacity)
-        self.activeUsers = ConcurrentUserManagement()    #Stores logged-in users, roles, session ids and activity state
+        self.activeUsers = ConcurrentUserManagement()    #Stores logged in users, roles, session ids and activity state
         self.waitingUsers = WaitingUserQueue()    #Stores login sessions waiting for a free server capacity slot
         self.threadManager = ThreadManager()
         self.log = EventLog()
@@ -34,59 +38,74 @@ class DistRes:
         self.info = dict(logins = 0, reads = 0, writes = 0, blocked = 0)
         self.infoLock = threading.Lock()
         
+    #Returns default text for a shared file if it has to be created
     def defaultFile(self, resource):
-        #Kept as a wrapper so older ConRes-style calls still use the new data layer
         return self.fileData.default_file(resource)
 
+    #Makes sure the shared resource files exist before clients can use them
     def ensure_resource_files(self):
         #Creates missing resources without putting file creation logic in the coordinator
         self.fileData.ensure_files()
 
+    #Keeps resource names consistent even if the UI sends an unexpected value
     def normalise_resource(self, resource):
         #Normalising in one place stops invalid UI values from breaking lock dictionaries
         return self.fileData.normalise_resource(resource)
 
+    #Reads a shared resource through the data layer
     def read_file(self, resource):
         return self.fileData.read_file(resource)
 
+    #Writes a shared resource through the data layer
     def write_file(self, resource, content):
         self.fileData.write_file(resource, content)
 
+    #Finds a locked resource for the dashboard summary
     def locked_resource(self):
         return self.accessControl.locked_resource()
 
+    #Gets every resource currently held by one user
     def user_locked_resources(self, user_id):
         return self.accessControl.user_locked_resources(user_id)
 
+    #Finds a user's first lock when the release request does not name a file
     def first_user_resource(self, user_id):
         return self.accessControl.first_user_resource(user_id)
 
+    #Checks whether a user still has any active file lock
     def user_holds_lock(self, user_id):
         return self.accessControl.user_holds_lock(user_id)
 
+    #Checks the lock mode a user owns for a specific resource
     def user_resource(self, user_id, resource):
         resource = self.normalise_resource(resource)
         return self.accessControl.user_resource(user_id, resource)
 
+    #Reserves a resource for a user before trying to take the read-write lock
     def reserve_user_resource(self, user_id, resource, mode):
         #Reserves ownership before waiting on the RWLock so duplicate requests fail early
         #Allows one user to read different files while blocking repeated reads of the same file
         resource = self.normalise_resource(resource)
         return self.accessControl.reserve_user_resource(user_id, resource, mode)
 
+    #Clears a user's resource ownership after release or logout
     def clear_user_resource(self, user_id, resource = None):
         return self.accessControl.clear_user_resource(user_id, resource)
     
+    #Returns how many active session slots are still free
     def availability(self):
         return self.semaphoreControl.availability(self.activeUsers.count())
     
+    #Updates simple counters used in the dashboard
     def info_increment(self, key):
         with self.infoLock:
             self.info[key] += 1
 
+    #Reads the waiting queue without removing anyone from it
     def waiting_list_peek(self):
         return self.waitingUsers.items()
     
+    #Authenticates a user and either admits them or places them in the queue
     def login(self, user_id, password):
         #Credentials are checked against the server database before any session is created
         user = dataLayer.userCredentialData.authenticate(user_id, password)
@@ -125,6 +144,7 @@ class DistRes:
         self.threadManager.start_waiter(self.wait_entry, session, id)
         return {"okay": True, "status": "queued", "username": name, "role": role, "position": position}
     
+    #Runs in the background for a queued user until a capacity slot opens
     def wait_entry(self, session):  #Waits for a released capacity slot and promotes the queued session
         #Queued users sleep here until the semaphore releases a server capacity slot
         self.semaphoreControl.wait()
@@ -132,6 +152,7 @@ class DistRes:
 
         self.allow(session, pushed=True)
 
+    #Adds a user to the active session list once the semaphore allows it
     def allow(self, session, pushed = False):   #Adds a session to active users and records admission details
         self.activeUsers.add(session["user_id"], session)
         self.info_increment("logins")
@@ -143,6 +164,7 @@ class DistRes:
             "LOGIN", session["user_id"], session["username"]
         )
     
+    #Logs a user out and releases any resource locks they were still holding
     def logout(self, user_id):
         #Logout cleans up any resource locks before the session capacity is released
         session = self.activeUsers.remove(user_id)
@@ -170,7 +192,8 @@ class DistRes:
         )
         return {"okay": True}
 
-    def acquire_read_lock(self, user_id, resource = "product.txt"):
+    #Gives a logged in user shared read access if no writer is active
+    def acquire_read_lock(self, user_id, resource = "ProductSpecification.txt"):
         session = self.activeUsers.get(user_id)  #Rejects resource access unless the user has an active session
         if (not session):
             return {"okay": False, "error": "User not logged in."}
@@ -207,7 +230,8 @@ class DistRes:
             )
         return {"okay": okay, "error": "" if okay else "Read blocked - writer active (5s timeout)."}
     
-    def acquire_write_lock(self, user_id, resource = "product.txt"):
+    #Gives a logged in user exclusive write access if the resource is free
+    def acquire_write_lock(self, user_id, resource = "ProductSpecification.txt"):
         session = self.activeUsers.get(user_id)
         if (not session):
             return {"okay": False, "error": "User not logged in."}
@@ -245,6 +269,7 @@ class DistRes:
             )
         return {"okay": okay, "error": "" if okay else "Write blocked - resource busy (5s timeout)."}
     
+    #Releases the selected read or write lock for this user
     def release(self, user_id, resource = None):
         #Release works for the selected file, or falls back to the first lock the user owns
         session = self.activeUsers.get(user_id)
@@ -280,7 +305,8 @@ class DistRes:
             return {"okay": False, "error": "No lock held by this user."}
         return {"okay": True}
 
-    def commit_write(self, user_id, newContent, resource = "product.txt"):
+    #Saves edited file content only if this user still owns the write lock
+    def commit_write(self, user_id, newContent, resource = "ProductSpecification.txt"):
         #Commit is separate from write-lock acquisition so the UI can edit before saving
         session = self.activeUsers.get(user_id)
         resource = self.normalise_resource(resource)
@@ -298,6 +324,7 @@ class DistRes:
         )
         return {"okay": True, "resource": resource}
     
+    #Changes the server session capacity from the dashboard slider
     def update_slots(self, n):
         oldCapacity = self.capacity
         availability = self.semaphoreControl.reconfigure(n, self.activeUsers.count())
@@ -305,14 +332,15 @@ class DistRes:
         self.log.add(
             f"Reconfigured: Semaphore N {oldCapacity} -> {n}. Available = {availability}", "SYS")
     
-    def status(self):   #Builds a read-only snapshot for dashboard polling and lock visualisation
-        #Status is read-only and combines sessions, locks, files and event history
+    #Builds one snapshot of the current system for the dashboard
+    def status(self):   #Builds a read only snapshot for dashboard polling and lock visualisation
+        #Status is read only and combines sessions, locks, files and event history
         activeUsers = self.activeUsers.status()
         waitingUsers = self.waiting_list_peek()
         rw = {resource: lock.status() for resource, lock in self.rwLocks.items()}
         for resource, state in rw.items():
             state["resource"] = resource
-        selectedResource = self.locked_resource() or "product.txt"
+        selectedResource = self.locked_resource() or "ProductSpecification.txt"
         selectedRw = dict(rw[selectedResource])
         fileActivity = {resource: tracker.status() for resource, tracker in self.fileActivity.items()}
         log = self.log.status(100)
@@ -332,7 +360,6 @@ class DistRes:
             "fileActivity": fileActivity,
             "resources":   list(self.resourceFiles.keys()),
             "files":       files,
-            "file":        files["product.txt"],
             "log":        log,
             "info":       info,
         }
@@ -340,28 +367,34 @@ class DistRes:
 class SemaphoreController:
     #Controls server session capacity and isolates semaphore operations from login logic
 
+    #Creates the semaphore used to limit active users
     def __init__(self, capacity):
         #The semaphore limits how many users can be active on the server at once
         self.capacity = capacity
         self.semaphore = threading.Semaphore(capacity)
         self.lock = threading.Lock()
 
+    #Calculates how many user slots are still available
     def availability(self, active_count):
         #Availability is calculated from active sessions so the dashboard stays accurate
         with self.lock:
             return max(0, self.capacity - active_count)
 
+    #Tries to take a slot without making the login request wait
     def acquire_now(self):
         #Login uses a non-blocking acquire so full capacity can place the user in a queue
         return self.semaphore.acquire(blocking = False)
 
+    #Blocks a queued login thread until a slot becomes free
     def wait(self):
         #Queued login threads block here until another user logs out
         self.semaphore.acquire()
 
+    #Returns one session slot when a user logs out
     def release(self):
         self.semaphore.release()
 
+    #Applies a new capacity value while keeping current active users in mind
     def reconfigure(self, capacity, active_count):
         #Reconfiguration rebuilds the semaphore around the new capacity limit
         with self.lock:
@@ -370,6 +403,7 @@ class SemaphoreController:
             self.semaphore = threading.Semaphore(available)
             return available
 
+    #Returns the capacity values shown in the sidebar
     def status(self, active_count):
         with self.lock:
             available = max(0, self.capacity - active_count)
@@ -383,17 +417,20 @@ class SemaphoreController:
 class ThreadManager:
     #Creates unique session ids and background waiter threads for queued users
 
+    #Creates the counter used for readable session thread names
     def __init__(self):
         #A counter keeps thread labels simple and readable in the interface
         self.counter = 1
         self.lock = threading.Lock()
 
+    #Returns the next label shown for a user session
     def next_session_id(self):
         with self.lock:
             thread_id = f"Thread{self.counter}"
             self.counter += 1
             return thread_id
 
+    #Starts a background thread for a queued user
     def start_waiter(self, target, session, user_id):
         #The waiter thread lets the UI return immediately while the user waits for capacity
         thread = threading.Thread(
@@ -407,21 +444,25 @@ class ThreadManager:
 
 
 class WaitingUserQueue:
-    #Wraps the FIFO queue so waiting-user operations stay outside the main coordinator
+    #Wraps the FIFO queue so waiting user operations stay outside the main coordinator
 
+    #Creates an empty FIFO waiting queue
     def __init__(self):
         #FIFO order keeps admission fair when the server capacity is full
         self.queue = queue.Queue(maxsize = 0)
 
+    #Adds a user to the end of the waiting queue
     def put(self, session):
         self.queue.put(session)
         return self.queue.qsize()
 
+    #Returns a safe snapshot of waiting users for the dashboard
     def items(self):
         #The dashboard needs a snapshot without removing users from the queue
         with self.queue.mutex:
             return list(self.queue.queue)
 
+    #Removes a user from the queue once they are promoted
     def remove(self, user_id):
         #Promotion removes a queued user by id after their semaphore wait finishes
         with self.queue.mutex:
@@ -435,10 +476,12 @@ class WaitingUserQueue:
 class AccessControlCoordinator:
     #Tracks which resource locks each active user owns
 
+    #Creates the ownership map used to stop duplicate or conflicting locks
     def __init__(self):
         self.userResources = {}
         self.lock = threading.Lock()
 
+    #Returns one locked resource when the dashboard needs a quick summary
     def locked_resource(self):
         #Returns one currently locked resource for the dashboard summary
         with self.lock:
@@ -447,11 +490,13 @@ class AccessControlCoordinator:
                     return resource
             return None
 
+    #Returns all locks owned by one user
     def user_locked_resources(self, user_id):
         #Returns all resources currently owned by one user
         with self.lock:
             return dict(self.userResources.get(user_id, {}))
 
+    #Chooses one lock to release if the request does not specify a resource
     def first_user_resource(self, user_id):
         #Finds a default resource to release when no selected file is supplied
         with self.lock:
@@ -459,16 +504,19 @@ class AccessControlCoordinator:
                 return resource
             return None
 
+    #Checks whether a user owns any resource lock
     def user_holds_lock(self, user_id):
         #Checks whether the user still owns any read or write lock
         with self.lock:
             return bool(self.userResources.get(user_id))
 
+    #Returns READ, WRITE or None for one user and resource
     def user_resource(self, user_id, resource):
         #Returns the lock mode a user owns for one resource
         with self.lock:
             return self.userResources.get(user_id, {}).get(resource)
 
+    #Records intended ownership before the lock wait begins
     def reserve_user_resource(self, user_id, resource, mode):
         #Blocks duplicate same-file locks while allowing reads on different files
         with self.lock:
@@ -482,6 +530,7 @@ class AccessControlCoordinator:
             locks[resource] = mode
             return True, resource
 
+    #Deletes ownership once a lock has been released
     def clear_user_resource(self, user_id, resource = None):
         #Removes ownership when a lock is released or a user logs out
         with self.lock:
@@ -498,6 +547,8 @@ class AccessControlCoordinator:
 
 class RWLock:
     #Allows multiple concurrent readers or one exclusive writer for a single resource
+
+    #Creates the counters and locks used to coordinate readers and writers
     def __init__(self):
         #The condition coordinates readers waiting for writers and writers waiting for readers
         self.condition = threading.Condition(threading.Lock())
@@ -508,6 +559,7 @@ class RWLock:
         self.readerIds = set()
         self.stateLock = threading.Lock()   #Protects writer and reader identifiers returned to the dashboard
 
+    #Lets a user read unless a writer currently owns the resource
     def acquire_read_lock(self, user_id, timeout = 5):
         timer = time.time() + timeout   #Limits how long a read request waits behind an active writer
         with self.condition:
@@ -527,6 +579,7 @@ class RWLock:
             self.readerIds.add(user_id)
             return True
         
+    #Removes a reader and wakes waiting writers if the file is now free
     def release_read_lock(self, user_id):
         with self.condition:
             if user_id not in self.readerIds:
@@ -537,6 +590,7 @@ class RWLock:
             if (self.readerCount == 0):
                 self.condition.notify_all()
 
+    #Lets one writer in only after all readers have left
     def acquire_write_lock(self, user_id, timeout = 5):
         if not (self.writerLock.acquire(timeout = timeout)):    #Times out if another writer already owns the writer gate
             return False
@@ -552,6 +606,7 @@ class RWLock:
             self.writerId = user_id
             return True
         
+    #Clears the writer and wakes clients waiting for the resource
     def release_write_lock(self, user_id):
         with self.condition:
             #Only the user who owns the write lock can release it
@@ -565,6 +620,7 @@ class RWLock:
                 pass
             return True
         
+    #Returns the lock state in a format the dashboard can display
     def status(self):
         with self.condition:
             return {
@@ -580,37 +636,45 @@ ReadWriteSynchronizationController = RWLock
 class UserManagement:
     #Thread-safe active user and session store used by login, logout and dashboard polling
 
+    #Creates the active user store used by the server session list
     def __init__(self):
-        self.store = OrderedDict()    #Stores logged-in users in session order for stable UI display
+        self.store = OrderedDict()    #Stores logged in users in session order for stable UI display
         self.lock = threading.Lock()    #Protects the session store during add, remove and state updates
     
+    #Adds a new active session after login is allowed
     def add(self, user_id, session):
         #A successful login creates one active session record
         with self.lock:
             self.store[user_id] = session
     
+    #Removes the active session when a user logs out
     def remove(self, user_id):
         #Logout removes the active session before capacity is released
         with self.lock:
             return self.store.pop(user_id)
     
+    #Finds a user session if that user is active
     def get(self, user_id):
         with self.lock:
             return self.store.get(user_id)
         
+    #Checks whether a user id is already active
     def contains(self, user_id):
         with self.lock:
             return user_id in self.store
     
+    #Updates the user's state shown in the dashboard
     def update_state(self, user_id, state):
         with self.lock:
             if (user_id in self.store):
                 self.store[user_id]["state"] = state    #Updates the user's activity state shown in the dashboard
     
+    #Returns the number of currently active sessions
     def count(self):
         with self.lock:
             return len(self.store)
     
+    #Returns all active sessions for the dashboard
     def status(self):
         #The UI reads this list to draw the active session panels
         return list(self.store.values())
@@ -620,39 +684,47 @@ CurrentSessions = UserManagement
 ConcurrentUserManagement = UserManagement
 
 class UserAccessTracker:    #Tracks current readers and writer for one resource
+    #Creates reader and writer tracking for one resource
     def __init__(self):
-        #This mirrors the lock state in a dashboard-friendly format
+        #This mirrors the lock state in a dashboard friendly format
         self.lock = threading.Lock()
         self.readerIds = set()
         self.writerId = None
 
+    #Adds a user to the visible reader list
     def add_reader(self, user_id):
         #Reader ids are stored as a set so duplicates cannot appear in the UI
         with self.lock:
             self.readerIds.add(user_id)
     
+    #Removes a user from the visible reader list
     def remove_reader(self, user_id):
         with self.lock:
             self.readerIds.discard(user_id)
     
+    #Stores the user currently writing this resource
     def set_writer(self, user_id):
         #Only one writer id is stored because write access is exclusive
         with self.lock:
             self.writerId = user_id
     
+    #Clears the writer if the same user releases the write lock
     def clear_writer(self, user_id):
         with self.lock:
             if (self.writerId == user_id):
                 self.writerId = None
     
+    #Checks whether the user is currently reading this resource
     def is_reader(self, user_id):
         with self.lock:
             return user_id in self.readerIds
     
+    #Checks whether the user is currently writing this resource
     def is_writer(self, user_id):
         with self.lock:
             return self.writerId == user_id
         
+    #Returns reader and writer details for the dashboard
     def status(self):
         with self.lock:
             return {
@@ -661,6 +733,7 @@ class UserAccessTracker:    #Tracks current readers and writer for one resource
                 "writer": self.writerId, 
             }
 
+    #Removes a user from both reader and writer tracking during cleanup
     def clear_user(self, user_id):   #Removes a user from reader and writer tracking during cleanup
         with self.lock:
             self.readerIds.discard(user_id)
@@ -668,11 +741,13 @@ class UserAccessTracker:    #Tracks current readers and writer for one resource
                 self.writerId = None
 
 class EventLog():
+    #Creates the in-memory event list used by the dashboard
     def __init__(self):
         #The in-memory log gives immediate feedback while SQLite keeps the audit trail
         self.entries = []
         self.lock = threading.Lock()
     
+    #Adds a visible event and optionally writes it to the audit database
     def add(self, message, category = "INFO", user_id = None, username = None):
         #Every visible event gets a timestamp before being shown in the dashboard
         entry = {
@@ -695,10 +770,12 @@ class EventLog():
             )
             thread.start()
 
+    #Returns recent events for the dashboard log
     def status(self, limit = 150):
         with self.lock:
             return list(self.entries[:limit])
     
+    #Clears the visible in-memory log
     def clear(self):
         with self.lock:
             self.entries.clear()

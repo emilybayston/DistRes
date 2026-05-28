@@ -8,7 +8,7 @@ import database
 
 
 class UserCredentialDataAccess:
-    #Processes SQL reads and writes for the server-owned user database
+    #Processes SQL reads and writes for the user database
 
     def hash_password(self, password):
         #Hashes passwords before storage so plain text passwords are not written to SQLite
@@ -196,3 +196,4 @@ class SharedFileDataAccess:
         #Returns the available distributed resource names
         return list(self.resourceFiles.keys())
 
+userCredentialData = UserCredentialDataAccess()
