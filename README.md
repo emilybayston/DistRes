@@ -16,7 +16,19 @@ The system allows multiple clients to concurrently read shared resources while e
 
 **System Architecture**
 
+
+DistRes Component Diagram:
+
+
 <img width="482" height="244" alt="image" src="https://github.com/user-attachments/assets/ff6a9783-c197-406c-a0b2-e945066fe068" />
+
+
+DistRes Deployment Diagram:
+
+
+<img width="451" height="333" alt="image" src="https://github.com/user-attachments/assets/6326a240-7232-49a5-a897-b5477d60c691" />
+
+
 
 
 Client Nodes:
@@ -98,4 +110,23 @@ These features improve reliability in distributed environments.
 5. Resource is read or updated
 6. Update notifications are published to active clients
 
- 
+
+ **Running the Program**
+
+1. Run server.py
+
+<img width="731" height="110" alt="image" src="https://github.com/user-attachments/assets/cb6ceb30-96d8-47f0-a778-df730c2785fb" />
+
+
+2. Run api.py
+
+<img width="725" height="172" alt="image" src="https://github.com/user-attachments/assets/7152c493-4bf3-4e3d-befa-5996a99f123c" />
+
+
+3. Open the browser client ip address (http://127.0.0.1:5000)
+
+<img width="1165" height="849" alt="image" src="https://github.com/user-attachments/assets/9930371c-0574-40b0-80f5-f99370713933" />
+
+
+
+
